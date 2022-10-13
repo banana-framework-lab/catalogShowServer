@@ -1,0 +1,4 @@
+ableFileType = [".sample",".mp4",".jpg"]
+
+[web]
+port = '8088'

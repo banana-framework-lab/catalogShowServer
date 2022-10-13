@@ -1,0 +1,1 @@
+go build -o catalogShowServer.exe main.go
