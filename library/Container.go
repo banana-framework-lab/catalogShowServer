@@ -1,10 +1,14 @@
 package library
 
+import (
+	"github.com/banana-framework-lab/catalogShowServer/abstract"
+	"github.com/banana-framework-lab/catalogShowServer/param"
+)
+
 type Container struct {
-	config     Config
-	file       File
-	controller Controller
-	route      Route
+	config Config
+	file   File
+	route  Route
 }
 
 var containerInstance *Container
@@ -12,46 +16,33 @@ var containerInstance *Container
 func GetContainer() *Container {
 	if containerInstance == nil {
 		if containerInstance == nil {
-			InitContainer()
+			containerInstance = &Container{
+				config: Config{
+					AbleFileTypeMap:  map[string]bool{},
+					AbleFileTypeList: []string{},
+				},
+				file: File{
+					FileList: []param.FileInfo{},
+				},
+				route: Route{
+					rMap:     map[string]param.Router{},
+					ctrlList: []abstract.AbsController{},
+				},
+			}
 		}
 	}
 
 	return containerInstance
 }
 
-func InitContainer() {
-	containerInstance = &Container{}
+func (ctn *Container) GetConfig() *Config {
+	return &ctn.config
 }
 
-func (ctn *Container) GetConfig() Config {
-	return ctn.config
+func (ctn *Container) GetFile() *File {
+	return &ctn.file
 }
 
-func (ctn *Container) InitConfig() {
-	ctn.config = Config{
-		AbleFileTypeMap: map[string]bool{},
-	}
-	ctn.config.Init()
-}
-
-func (ctn *Container) GetFile() File {
-	return ctn.file
-}
-
-func (ctn *Container) InitFile() {
-	ctn.file = File{}
-	ctn.file.Init()
-}
-
-func (ctn *Container) SetController(c Controller) {
-	ctn.controller = c
-}
-
-func (ctn *Container) GetController() Controller {
-	return ctn.controller
-}
-
-func (ctn *Container) InitRoute() {
-	ctn.route = Route{}
-	ctn.route.Init()
+func (ctn *Container) GetRoute() *Route {
+	return &ctn.route
 }

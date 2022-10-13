@@ -8,11 +8,10 @@ import (
 )
 
 func main() {
-	library.InitContainer()
 	base.InitController()
-	library.GetContainer().InitConfig()
-	library.GetContainer().InitFile()
-	library.GetContainer().InitRoute()
+	library.GetContainer().GetConfig().Init()
+	library.GetContainer().GetFile().Init()
+	library.GetContainer().GetRoute().Init()
 
 	// server
 	srv := http.Server{

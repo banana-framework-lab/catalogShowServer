@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"github.com/banana-framework-lab/catalogShowServer/library"
+	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/logic"
 	"github.com/banana-framework-lab/catalogShowServer/param"
-	"io"
-	"net/http"
 )
 
 type ListController struct{}
@@ -17,48 +15,41 @@ func (f ListController) RouterList() []param.Router {
 	}
 }
 
-func (ListController) getListByName(req *http.Request) param.Response {
-	type ReqData struct {
-		Name string `json:"name"`
+func (ListController) getListByName(req param.Request) param.Response {
+	type Aa struct {
+		b string
 	}
-	var reqData ReqData
-	data, _ := io.ReadAll(req.Body)
-	if err := library.DecodeJson(data, &reqData); err != nil {
-		return param.Response{
-			Code:    1,
-			Message: "成功获取",
-			Data:    []string{},
-		}
+	return param.Response{
+		Code:    param.SUCCESS,
+		Message: "成功获取",
+		Data:    []string{},
+	}
 
-	} else {
-		return param.Response{
-			Code:    0,
-			Message: "失败获取",
-			Data:    []string{},
-		}
-	}
 }
 
-func (ListController) getListByType(req *http.Request) param.Response {
+func (ListController) getListByType(req param.Request) param.Response {
 	type ReqData struct {
 		Type string `json:"type"`
+		Page uint8  `json:"page"`
+		Rows uint32 `json:"rows"`
 	}
-	var reqData ReqData
-	data, _ := io.ReadAll(req.Body)
-	if len(data) <= 2 {
-		data = []byte("{}")
+	var data = ReqData{
+		Page: 1,
+		Rows: 5,
 	}
-	err := library.DecodeJson(data, &reqData)
-	//.jpg
-	if err == nil {
-		if reqData.Type == "" {
-			reqData.Type = ".mp4"
+	err := req.PostData(&data)
+	if err != nil {
+		return param.Response{
+			Message: err.Error(),
 		}
+	}
+	fmt.Printf("%+v", data)
+	if err == nil {
 		var l = logic.ListLogic{}
-		var list = l.GetListByType(reqData.Type)
+		var list = l.GetListByType(data.Type, data.Page, data.Rows)
 		return param.Response{
 			Code:    0,
-			Message: "成功获取",
+			Message: data.Type + "成功获取",
 			Data:    list,
 		}
 	} else {

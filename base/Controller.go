@@ -6,7 +6,7 @@ import (
 )
 
 func InitController() {
-	initController := library.Controller{}
-	initController.AddController(controller.ListController{})
-	library.GetContainer().SetController(initController)
+	library.GetContainer().GetRoute().SetController(
+		controller.ListController{},
+	)
 }

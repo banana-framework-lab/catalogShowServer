@@ -3,6 +3,7 @@ package library
 import (
 	"errors"
 	"fmt"
+	"github.com/banana-framework-lab/catalogShowServer/abstract"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"github.com/banana-framework-lab/catalogShowServer/web"
 	"github.com/vearutop/statigz"
@@ -14,7 +15,14 @@ import (
 )
 
 type Route struct {
-	rMap map[string]param.Router
+	rMap     map[string]param.Router
+	ctrlList []abstract.AbsController
+}
+
+func (rt *Route) SetController(cList ...abstract.AbsController) {
+	for _, c := range cList {
+		rt.ctrlList = append(rt.ctrlList, c)
+	}
 }
 
 func (rt *Route) SetRouter(url string, router param.Router) {
@@ -61,12 +69,20 @@ func (rt *Route) onRequest(req *http.Request) param.Response {
 	router, err := rt.getRouter(req.URL.Path)
 	if err != nil {
 		return param.Response{
-			Code:    0,
+			Code:    param.REQUEST_PARAM_ERROR,
 			Message: err.Error(),
 			Data:    map[string]string{},
 		}
 	} else {
-		return router.Function(req)
+		request := param.NewRequest(req)
+		//if err != nil {
+		//	return param.Response{
+		//		Code:    param.REQUEST_PARAM_ERROR,
+		//		Message: err.Error(),
+		//		Data:    map[string]string{},
+		//	}
+		//}
+		return router.Function(request)
 	}
 }
 
@@ -74,7 +90,7 @@ func (rt *Route) Init() {
 
 	rt.rMap = map[string]param.Router{}
 
-	rt.InitRouteMap()
+	rt.initRouteMap()
 
 	subFS, err := fs.Sub(web.Dist, "dist")
 	if err != nil {
@@ -85,8 +101,8 @@ func (rt *Route) Init() {
 	http.Handle("/", rt)
 }
 
-func (rt *Route) InitRouteMap() {
-	for _, c := range containerInstance.controller.List {
+func (rt *Route) initRouteMap() {
+	for _, c := range rt.ctrlList {
 		for _, r := range c.RouterList() {
 			rt.SetRouter(r.Url, r)
 		}
