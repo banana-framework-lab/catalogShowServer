@@ -7,11 +7,16 @@ import (
 	"net/http"
 )
 
+const (
+	DefaultPage = 1
+	DefaultRows = 5
+)
+
 type Request struct {
 	req *http.Request
 }
 
-func (r *Request) GetData(v interface{}) error {
+func (r *Request) GET(v interface{}) error {
 	getDataErr := common.DecodeQuery(r.req.URL.Query(), v)
 	if getDataErr != nil {
 		return errors.New("get error-" + getDataErr.Error())
@@ -19,7 +24,7 @@ func (r *Request) GetData(v interface{}) error {
 	return nil
 }
 
-func (r *Request) PostData(v interface{}) error {
+func (r *Request) POST(v interface{}) error {
 	postStream, _ := io.ReadAll(r.req.Body)
 	if len(postStream) <= 2 {
 		postStream = []byte("{}")
@@ -31,12 +36,12 @@ func (r *Request) PostData(v interface{}) error {
 	return nil
 }
 
-func (r *Request) AllData(v interface{}) error {
-	err := r.PostData(v)
+func (r *Request) DATA(v interface{}) error {
+	err := r.POST(v)
 	if err != nil {
 		return err
 	}
-	err = r.GetData(v)
+	err = r.GET(v)
 	if err != nil {
 		return err
 	}

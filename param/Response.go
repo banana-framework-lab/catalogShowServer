@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	SUCCESS             = 0
-	FAIL                = 1
-	REQUEST_PARAM_ERROR = 2
+	RequestSuccess    = 0
+	RequestFail       = 1
+	RequestParamError = 2
 )
 
 type Response struct {

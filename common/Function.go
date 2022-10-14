@@ -24,10 +24,14 @@ func DecodeQuery(data url.Values, v interface{}) error {
 	return nil
 }
 
-func GetArrayKeyByPageRows(listLen int, page int, rows int) (int, int) {
-	if listLen >= (page * rows) {
-		return (page - 1) * rows, rows
+func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
+	if len(list) >= (page * rows) {
+		return list[(page-1)*rows : rows]
 	} else {
-		return listLen - rows - 1, rows
+		if rows >= len(list) {
+			return list[0:len(list)]
+		} else {
+			return list[1:rows]
+		}
 	}
 }

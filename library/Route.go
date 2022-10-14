@@ -69,7 +69,7 @@ func (rt *Route) onRequest(req *http.Request) param.Response {
 	router, err := rt.getRouter(req.URL.Path)
 	if err != nil {
 		return param.Response{
-			Code:    param.REQUEST_PARAM_ERROR,
+			Code:    param.RequestParamError,
 			Message: err.Error(),
 			Data:    map[string]string{},
 		}
