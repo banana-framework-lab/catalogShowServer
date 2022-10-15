@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 )
 
 type File struct {
@@ -93,9 +94,11 @@ func (f *File) catalogRecurrence(src string) {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	values := req.URL.Query()
-	b, err := os.ReadFile("../" + values.Get("file"))
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
-	_, _ = rw.Write(b)
+	file, err := os.Open("../" + values.Get("file"))
+    if err != nil {
+        fmt.Printf("%v \n", err)
+    }
+    defer file.Close()
+
+    http.ServeContent(rw, req ,"../" + values.Get("file"), time.Now(), file)
 }
