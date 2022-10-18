@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/banana-framework-lab/catalogShowServer/body"
 	"github.com/banana-framework-lab/catalogShowServer/logic"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 )
@@ -23,7 +24,9 @@ func (ListController) getFiletypeOption(req param.Request) param.Response {
 	return param.Response{
 		Code:    param.RequestSuccess,
 		Message: "成功获取",
-		Data:    options,
+		Data: struct {
+			Options body.FileTypeOptionList `json:"options"`
+		}{Options: options},
 	}
 }
 
@@ -33,7 +36,9 @@ func (ListController) getCatalogOption(req param.Request) param.Response {
 	return param.Response{
 		Code:    param.RequestSuccess,
 		Message: "成功获取",
-		Data:    options,
+		Data: struct {
+			Options body.CatalogOptionList `json:"options"`
+		}{Options: options},
 	}
 }
 
@@ -55,13 +60,17 @@ func (ListController) getListByName(req param.Request) param.Response {
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: "成功获取",
-			Data:    list,
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: list},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
-			Data:    []string{},
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: []param.FileInfo{}},
 		}
 	}
 }
@@ -83,13 +92,17 @@ func (ListController) getListByType(req param.Request) param.Response {
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: data.Type + "成功获取",
-			Data:    list,
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: list},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
-			Data:    []string{},
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: []param.FileInfo{}},
 		}
 	}
 }
@@ -110,13 +123,17 @@ func (ListController) getListByCatalog(req param.Request) param.Response {
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: data.Catalog + "成功获取",
-			Data:    list,
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: list},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
-			Data:    []string{},
+			Data: struct {
+				List []param.FileInfo `json:"list"`
+			}{List: []param.FileInfo{}},
 		}
 	}
 }

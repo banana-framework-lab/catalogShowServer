@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -26,19 +27,11 @@ type FileSearchMap struct {
 	CatalogMap  map[string][]param.FileInfo
 }
 
-func (f *File) Init(srcOption ...string) {
-	if len(srcOption) > 1 {
-		fmt.Println("只能输入一个路径")
-		return
-	}
-	if len(srcOption) <= 0 {
-		srcOption = []string{".."}
-	}
-
+func (f *File) Init() {
 	f.SearchMap.FileTypeMap = map[string][]param.FileInfo{}
 	f.SearchMap.CatalogMap = map[string][]param.FileInfo{}
 
-	f.catalogRecurrence(srcOption[0])
+	f.catalogRecurrence(rootSrc)
 
 	// 通过map生成list
 	for key := range f.SearchMap.FileTypeMap {
@@ -66,18 +59,23 @@ func (f *File) catalogRecurrence(src string) {
 			fileType := path.Ext(fileInfo.Name())
 			fileType = strings.Trim(fileType, " ")
 			if able, ok := containerInstance.config.AbleFileTypeMap[fileType]; ok && able {
+
+				srcValue := strings.Replace(src, rootSrc, "", 1)
+
 				file := param.FileInfo{
-					Src:      src + eol + fileInfo.Name(),
-					Name:     fileInfo.Name(),
-					FileType: fileType,
+					Url:         "/file/?file=" + srcValue + eol + fileInfo.Name(),
+					AbsoluteSrc: src + eol + fileInfo.Name(),
+					Src:         srcValue + eol + fileInfo.Name(),
+					Name:        fileInfo.Name(),
+					FileType:    fileType,
 				}
 				f.FileList = append(f.FileList, file)
 
-				if _, ok := f.SearchMap.CatalogMap[src]; ok {
-					f.SearchMap.CatalogMap[src] = append(f.SearchMap.CatalogMap[src], file)
+				if _, ok := f.SearchMap.CatalogMap[srcValue]; ok {
+					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file)
 				} else {
-					f.SearchMap.CatalogMap[src] = []param.FileInfo{}
-					f.SearchMap.CatalogMap[src] = append(f.SearchMap.CatalogMap[src], file)
+					f.SearchMap.CatalogMap[srcValue] = []param.FileInfo{}
+					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file)
 				}
 
 				if _, ok := f.SearchMap.FileTypeMap[fileType]; ok {
@@ -94,11 +92,11 @@ func (f *File) catalogRecurrence(src string) {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	values := req.URL.Query()
-	file, err := os.Open("../" + values.Get("file"))
-    if err != nil {
-        fmt.Printf("%v \n", err)
-    }
-    defer file.Close()
+	file, err := os.Open(filepath.Join(rootSrc, values.Get("file")))
+	if err != nil {
+		fmt.Printf("%v \n", err)
+	}
+	defer file.Close()
 
-    http.ServeContent(rw, req ,"../" + values.Get("file"), time.Now(), file)
+	http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
 }

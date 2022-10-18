@@ -2,8 +2,13 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/schema"
 	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 func DecodeJson(data []byte, v interface{}) error {
@@ -34,4 +39,23 @@ func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
 			return list[1:rows]
 		}
 	}
+}
+
+func GetCurrentPath() (string, error) {
+	file, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	path, err := filepath.Abs(file)
+	if err != nil {
+		return "", err
+	}
+	i := strings.LastIndex(path, "/")
+	if i < 0 {
+		i = strings.LastIndex(path, "\\")
+	}
+	if i < 0 {
+		return "", errors.New(`error: Can't find "/" or "\".`)
+	}
+	return string(path[0 : i+1]), nil
 }

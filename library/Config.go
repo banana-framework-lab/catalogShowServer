@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pelletier/go-toml/v2"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -24,7 +25,7 @@ func (cfg *Config) setAbleFileTypeMap() {
 }
 
 func (cfg *Config) Init() {
-	tomlConfig, err := os.ReadFile("./config.toml")
+	tomlConfig, err := os.ReadFile(filepath.Join(rootSrc, "/build/config.toml"))
 	if err != nil {
 		fmt.Println("配置文件读取错误")
 		return

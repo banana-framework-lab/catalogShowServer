@@ -1,0 +1,24 @@
+html {
+  font-size: 14px;
+  background-color: rgba(61, 61, 63, 1);
+}
+
+.card {
+  padding: 2em;
+}
+
+#app {
+  margin: 0 auto;
+
+}
+
+.n-layout-header,
+.n-layout-footer {
+  background: rgba(128, 128, 128, 0.2);
+  padding: 0.5rem;
+}
+
+
+.n-layout-content {
+  background: rgba(128, 128, 128, 0.4);
+}

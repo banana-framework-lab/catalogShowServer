@@ -1,8 +1,11 @@
 package library
 
 import (
+	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/abstract"
+	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
+	"path/filepath"
 )
 
 type Container struct {
@@ -13,9 +16,17 @@ type Container struct {
 
 var containerInstance *Container
 
+var rootSrc string = ""
+
 func GetContainer() *Container {
 	if containerInstance == nil {
 		if containerInstance == nil {
+			rootSrcValue, err := common.GetCurrentPath()
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				rootSrc = filepath.Join(rootSrcValue, "/../")
+			}
 			containerInstance = &Container{
 				config: Config{
 					AbleFileTypeMap:  map[string]bool{},
