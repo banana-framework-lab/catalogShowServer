@@ -1,6 +1,10 @@
 <template>
   <div>
-    <n-config-provider :theme="darkTheme">
+    <n-config-provider
+      :theme="darkTheme"
+      :locale="zhCN"
+      :date-locale="dateZhCN"
+    >
       <n-watermark
         content="TopV"
         cross
@@ -57,14 +61,8 @@
               v-for="(item, index) in search.history"
               :key="index"
               type="success"
-              closable
-              round
-              style="margin-left: 0.2rem; margin-right: 0.2rem"
-              @close="
-                () => {
-                  deleteHistory(index)
-                }
-              "
+              style="margin: 0.2rem"
+              @click="clickHistory(item)"
             >
               <n-ellipsis
                 line-clamp="1"
@@ -101,46 +99,42 @@
           </n-layout-content>
           <n-layout-content content-style="padding: 1rem;">
             <div v-if="search.list.length > 0">
-              <n-card
-                v-for="(item, index) in search.list"
-                :key="index"
-                style="max-width: 40rem; margin-bottom: 0.8rem"
-              >
-                <template #cover>
-                  <div
-                    style="
-                      background-color: rgba(81, 81, 81, 1);
-                      height: 23rem;
-                      margin-bottom: 1rem;
-                      text-align: center;
-                    "
-                  >
-                    <n-image
-                      object-fit="contain"
-                      lazy
-                      src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
-                    />
+              <div style="flex-wrap: wrap; display: -webkit-flex">
+                <n-card
+                  v-for="(item, index) in search.list"
+                  :key="index"
+                  style="max-width: 30rem; margin: 0.5rem"
+                >
+                  <template #cover>
+                    <div style="text-align: center">
+                      <n-image
+                        style="height: 16.8rem"
+                        object-fit="none"
+                        lazy
+                        src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+                      />
+                    </div>
+                  </template>
+                  <div>
+                    <n-ellipsis
+                      expand-trigger="click"
+                      line-clamp="1"
+                      :tooltip="false"
+                    >
+                      文件名称：{{ item.name }}
+                    </n-ellipsis>
+                    <br />
+                    <n-ellipsis
+                      expand-trigger="click"
+                      line-clamp="1"
+                      :tooltip="false"
+                    >
+                      文件目录：{{ item.src }}
+                    </n-ellipsis>
                   </div>
-                </template>
-                <div>
-                  <n-ellipsis
-                    expand-trigger="click"
-                    line-clamp="2"
-                    :tooltip="false"
-                  >
-                    文件名称：{{ item.name }}
-                  </n-ellipsis>
-                  <br />
-                  <n-ellipsis
-                    expand-trigger="click"
-                    line-clamp="2"
-                    :tooltip="false"
-                  >
-                    文件目录：{{ item.src }}
-                  </n-ellipsis>
-                </div>
-              </n-card>
-              <div style="margin-top: 1rem">
+                </n-card>
+              </div>
+              <div style="margin-top: 1rem; text-align: center">
                 <n-pagination
                   :page-count="20"
                   show-quick-jumper
@@ -189,7 +183,7 @@ import {
   GetCatalogOption,
   CatalogOption,
 } from '@/api/option'
-import { darkTheme } from 'naive-ui'
+import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import Cookies from 'js-cookie'
 
@@ -240,6 +234,11 @@ function initHistory() {
 }
 
 initHistory()
+
+function clickHistory(tag) {
+  search.conditon.name = tag
+  searchFunction()
+}
 
 function deleteHistory(index: number) {
   search.history.splice(index, 1)
