@@ -7,7 +7,7 @@
 *.sln
 *.sw*
 tmp
-.air.toml
+*air.toml
 
 repository/**/
 # local env files
