@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "eslint-plugin-vue": "^9.6.0",
-    "vue": "^3.2.37"
+    "eslint-plugin-vue": "^9.6.0"
   },
   "devDependencies": {
+    "@babel/types": "^7.19.4",
     "@types/js-cookie": "^3.0.2",
+    "@types/video.js": "^7.3.49",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@vicons/antd": "^0.12.0",
     "@vicons/carbon": "^0.12.0",
@@ -40,7 +41,7 @@
     "vfonts": "0.0.3",
     "video.js": "^7.20.3",
     "vite": "^3.1.0",
-    "vue-tsc": "^0.40.4",
-    "vue-video-player": "^6.0.0"
+    "vue": "^3.2.41",
+    "vue-tsc": "^0.40.13"
   }
 }

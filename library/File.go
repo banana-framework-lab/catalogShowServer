@@ -61,6 +61,9 @@ func (f *File) catalogRecurrence(src string) {
 			if able, ok := containerInstance.config.AbleFileTypeMap[fileType]; ok && able {
 
 				srcValue := strings.Replace(src, rootSrc, "", 1)
+				if srcValue == "" {
+					srcValue = "/"
+				}
 
 				file := param.FileInfo{
 					Url:         "/file/?file=" + srcValue + eol + fileInfo.Name(),

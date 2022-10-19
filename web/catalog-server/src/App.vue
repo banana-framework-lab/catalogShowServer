@@ -158,6 +158,7 @@
                               <video-player
                                 class="video-js vjs-default-skin vjs-big-play-centered"
                                 :options="getPlayerOption(baseUrl + item.url)"
+                                :volume="0.6"
                               />
                             </div>
                           </div>
@@ -246,6 +247,7 @@ import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
 import { reactive, ref } from 'vue'
 import Cookies from 'js-cookie'
 import { VideoPlayer } from '@videojs-player/vue'
+import { VideoJsPlayerOptions } from 'video.js'
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 
@@ -399,10 +401,9 @@ function seeOther() {
   getListByName('')
 }
 
-function getPlayerOption(url: string) {
-  return {
-    height: '16.8 * 14',
-    volume: 0.6,
+function getPlayerOption(url: string): VideoJsPlayerOptions {
+  const option: VideoJsPlayerOptions = {
+    height: 16.8 * 14,
     controls: true,
     playbackRates: [0.7, 1.0, 1.5, 2.0], //播放速度
     autoplay: false, //如果true,浏览器准备好时开始回放。
@@ -412,7 +413,6 @@ function getPlayerOption(url: string) {
     language: 'zh-CN',
     aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
     fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-    flash: { hls: { withCredentials: false } }, // 可以使用rtmp视频
     html5: { hls: { withCredentials: false } }, // 可以使用m3u8视频
     sources: [
       {
@@ -430,6 +430,7 @@ function getPlayerOption(url: string) {
       fullscreenToggle: true, //全屏按钮
     },
   }
+  return option
 }
 </script>
 

@@ -43,7 +43,7 @@ func (rt *Route) getRMap() map[string]param.Router {
 }
 
 func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if "/" == req.URL.Path {
+	if "/" == req.URL.Path || "/index.html" == req.URL.Path {
 		read, err := web.Dist.Open("dist/index.html")
 		if err != nil {
 			log.Fatal(err)
@@ -52,9 +52,11 @@ func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			_ = r.Close()
 		}(read)
 		contents, err := io.ReadAll(read)
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, _ = fmt.Fprint(rw, string(contents))
-
 		return
 	} else {
 		rsp := rt.onRequest(req)
@@ -96,7 +98,7 @@ func (rt *Route) Init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	http.Handle("/assets/", statigz.FileServer(subFS.(fs.ReadDirFS)))
+	http.Handle("/static/", statigz.FileServer(subFS.(fs.ReadDirFS)))
 	http.Handle("/favicon.ico", statigz.FileServer(subFS.(fs.ReadDirFS)))
 	http.Handle("/", rt)
 }

@@ -11,6 +11,10 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
     resolve: {
       alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
     },
+    build: {
+      outDir: '../dist',
+      assetsDir: 'static',
+    },
     server: {
       host: '0.0.0.0',
       port: 9528,
