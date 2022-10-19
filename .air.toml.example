@@ -4,8 +4,8 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  bin = "F:\\原始传奇古力娜扎\\build\\catalogShowServer.exe"
-  cmd = "go build -o F:\\原始传奇古力娜扎\\build\\catalogShowServer.exe ."
+  bin = "tmp\\main.exe"
+  cmd = "go build -o ./tmp/main.exe ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata",'web']
   exclude_file = []
