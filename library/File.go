@@ -65,7 +65,7 @@ func (f *File) catalogRecurrence(src string) {
 				file := param.FileInfo{
 					Url:         "/file/?file=" + srcValue + eol + fileInfo.Name(),
 					AbsoluteSrc: src + eol + fileInfo.Name(),
-					Src:         srcValue + eol + fileInfo.Name(),
+					Src:         srcValue,
 					Name:        fileInfo.Name(),
 					FileType:    fileType,
 				}

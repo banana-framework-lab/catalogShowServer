@@ -11,9 +11,12 @@ export class GetListByName extends Request {
   public url = '/list/getListByName'
   public declare param: {
     name?: string
+    page?: number
+    rows?: number
   }
   public declare datagram: {
     list: FileInfo[]
+    total: number
   }
   public setParam(param: this['param']) {
     this.param = param
@@ -25,9 +28,12 @@ export class GetListByCatalog extends Request {
   readonly method = 'POST'
   public declare param: {
     catalog?: string
+    page?: number
+    rows?: number
   }
   public declare datagram: {
     list: FileInfo[]
+    total: number
   }
   public setParam(param: this['param']) {
     this.param = param
@@ -39,9 +45,12 @@ export class GetListByType extends Request {
   readonly method = 'POST'
   public declare param: {
     type?: string
+    page?: number
+    rows?: number
   }
   public declare datagram: {
     list: FileInfo[]
+    total: number
   }
   public setParam(param: this['param']) {
     this.param = param

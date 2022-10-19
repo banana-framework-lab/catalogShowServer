@@ -43,7 +43,6 @@ func (rt *Route) getRMap() map[string]param.Router {
 }
 
 func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	fmt.Println(1111)
 	if "/" == req.URL.Path {
 		read, err := web.Dist.Open("dist/index.html")
 		if err != nil {

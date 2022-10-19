@@ -56,21 +56,23 @@ func (ListController) getListByName(req param.Request) param.Response {
 	err := req.GET(&data)
 	if err == nil {
 		var l = logic.ListLogic{}
-		var list = l.GetListByName(data.Name, data.Page, data.Rows)
+		var list, total = l.GetListByName(data.Name, data.Page, data.Rows)
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: "成功获取",
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: list},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: list, Total: total},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: []param.FileInfo{}},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: []param.FileInfo{}, Total: 0},
 		}
 	}
 }
@@ -88,21 +90,23 @@ func (ListController) getListByType(req param.Request) param.Response {
 	err := req.POST(&data)
 	if err == nil {
 		var l = logic.ListLogic{}
-		var list = l.GetListByType(data.Type, data.Page, data.Rows)
+		var list, total = l.GetListByType(data.Type, data.Page, data.Rows)
 		return param.Response{
 			Code:    param.RequestSuccess,
-			Message: data.Type + "成功获取",
+			Message: "成功获取",
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: list},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: list, Total: total},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: []param.FileInfo{}},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: []param.FileInfo{}, Total: 0},
 		}
 	}
 }
@@ -119,21 +123,23 @@ func (ListController) getListByCatalog(req param.Request) param.Response {
 	err := req.POST(&data)
 	if err == nil {
 		var l = logic.ListLogic{}
-		var list = l.GetListByCatalog(data.Catalog, data.Page, data.Rows)
+		var list, total = l.GetListByCatalog(data.Catalog, data.Page, data.Rows)
 		return param.Response{
 			Code:    param.RequestSuccess,
-			Message: data.Catalog + "成功获取",
+			Message: "成功获取",
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: list},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: list, Total: total},
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
 			Message: "失败获取" + err.Error(),
 			Data: struct {
-				List []param.FileInfo `json:"list"`
-			}{List: []param.FileInfo{}},
+				List  []param.FileInfo `json:"list"`
+				Total int              `json:"total"`
+			}{List: []param.FileInfo{}, Total: 0},
 		}
 	}
 }
