@@ -12,6 +12,7 @@ func main() {
 	library.GetContainer().GetConfig().Init()
 	library.GetContainer().GetFile().Init()
 	library.GetContainer().GetRoute().Init()
+	library.GetContainer().ShowStartText()
 
 	// server
 	srv := http.Server{

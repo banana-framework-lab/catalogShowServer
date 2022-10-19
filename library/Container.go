@@ -5,6 +5,7 @@ import (
 	"github.com/banana-framework-lab/catalogShowServer/abstract"
 	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
+	"net"
 	"path/filepath"
 )
 
@@ -56,4 +57,32 @@ func (ctn *Container) GetFile() *File {
 
 func (ctn *Container) GetRoute() *Route {
 	return &ctn.route
+}
+
+func (ctn *Container) ShowStartText() {
+	fmt.Println("╔═══╗   ╔╗   ╔╗      ╔═══╦╗         ╔═══╗")
+	fmt.Println("║╔═╗║  ╔╝╚╗  ║║      ║╔═╗║║         ║╔═╗║")
+	fmt.Println("║║ ╚╬══╬╗╔╬══╣║╔══╦══╣╚══╣╚═╦══╦╗╔╗╔╣╚══╦══╦═╦╗╔╦══╦═╗")
+	fmt.Println("║║ ╔╣╔╗║║║║╔╗║║║╔╗║╔╗╠══╗║╔╗║╔╗║╚╝╚╝╠══╗║║═╣╔╣╚╝║║═╣╔╝")
+	fmt.Println("║╚═╝║╔╗║║╚╣╔╗║╚╣╚╝║╚╝║╚═╝║║║║╚╝╠╗╔╗╔╣╚═╝║║═╣║╚╗╔╣║═╣║")
+	fmt.Println("╚═══╩╝╚╝╚═╩╝╚╩═╩══╩═╗╠═══╩╝╚╩══╝╚╝╚╝╚═══╩══╩╝ ╚╝╚══╩╝")
+	fmt.Println("                  ╔═╝║")
+	fmt.Println("                  ╚══╝")
+	fmt.Println("")
+	fmt.Println("CatalogShowServer Ready")
+	fmt.Println("")
+	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for _, address := range addrs {
+		// 检查ip地址判断是否回环地址
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				fmt.Println("Network => http://" + ipnet.IP.String() + ":" + ctn.config.Web.Port + "/")
+			}
+		}
+	}
 }
