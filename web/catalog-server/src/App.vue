@@ -20,16 +20,43 @@
       <n-space vertical size="large">
         <n-layout>
           <n-layout-header>
-            <n-gradient-text
-              :gradient="{
-                to: 'rgb(255, 255, 255)',
-                from: 'rgb(99 226 183)',
-              }"
-              size="25"
-            >
-              CatalogShow
-            </n-gradient-text>
-            <n-gradient-text type="success" size="25"> Server </n-gradient-text>
+            <n-grid :x-gap="5" :y-gap="0" :cols="8">
+              <n-grid-item span="7">
+                <n-gradient-text
+                  :gradient="{
+                    to: 'rgb(255, 255, 255)',
+                    from: 'rgb(99 226 183)',
+                  }"
+                  size="1.8rem"
+                >
+                  CatalogShow
+                </n-gradient-text>
+                <n-gradient-text type="success" size="1.8rem">
+                  Server
+                </n-gradient-text>
+              </n-grid-item>
+              <n-grid-item
+                span="1"
+                style="align-items: center; display: flex; justify-content: end"
+              >
+                <n-icon
+                  v-if="search.mode === 'table'"
+                  :component="AppstoreOutlined"
+                  size="1.5rem"
+                  :depth="1"
+                  color="#7fe7c4"
+                  @click="search.mode = 'list'"
+                />
+                <n-icon
+                  v-if="search.mode === 'list'"
+                  :component="AlignLeftOutlined"
+                  size="1.5rem"
+                  :depth="1"
+                  color="#7fe7c4"
+                  @click="search.mode = 'table'"
+                />
+              </n-grid-item>
+            </n-grid>
           </n-layout-header>
           <n-layout-content content-style="padding: 1rem;text-align: center;">
             <n-input-group>
@@ -112,10 +139,13 @@
             <n-spin :show="search.loading" size="large">
               <template #description> 正在加载。。。 </template>
               <template #icon>
-                <n-icon><Reload /></n-icon>
+                <n-icon>
+                  <Reload />
+                </n-icon>
               </template>
               <div v-if="search.list.length > 0">
                 <n-scrollbar
+                  v-if="search.mode === 'list'"
                   :style="
                     search.history.length > 0
                       ? 'max-height: calc(100vh - 23rem)'
@@ -184,6 +214,65 @@
                     </n-grid-item>
                   </n-grid>
                 </n-scrollbar>
+                <div v-if="search.mode === 'table'">
+                  <n-table size="small" :striped="true" :single-line="false">
+                    <thead>
+                      <tr>
+                        <th style="width: 50%">文件名称</th>
+                        <th style="width: 50%" class="table-catalog">
+                          文件目录
+                        </th>
+                      </tr>
+                    </thead>
+                  </n-table>
+                  <n-scrollbar
+                    :style="
+                      search.history.length > 0
+                        ? 'max-height: calc(100vh - 23.5rem)'
+                        : 'max-height: calc(100vh - 20.5rem)'
+                    "
+                    trigger="none"
+                  >
+                    <n-table size="small" :striped="true" :single-line="false">
+                      <tbody>
+                        <tr v-for="(item, index) in search.list" :key="index">
+                          <td style="width: 50%">
+                            <div
+                              style="
+                                padding-right: 1rem;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                              "
+                            >
+                              <n-ellipsis
+                                expand-trigger="click"
+                                line-clamp="1"
+                                :tooltip="false"
+                              >
+                                <span style="color: #7fe7c4"
+                                  >{{ index + 1 }}.</span
+                                >
+                                {{ item.name }}
+                              </n-ellipsis>
+                              <n-button
+                                strong
+                                secondary
+                                type="primary"
+                                @click="showModal(item)"
+                              >
+                                <n-icon><Eye /></n-icon>
+                              </n-button>
+                            </div>
+                          </td>
+                          <td style="width: 50%" class="table-catalog">
+                            {{ item.src }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </n-table>
+                  </n-scrollbar>
+                </div>
               </div>
               <div v-if="search.list.length <= 0">
                 <n-empty description="没有文件，随机看看别的">
@@ -221,6 +310,48 @@
           </n-layout-content>
         </n-layout>
       </n-space>
+      <n-modal
+        v-model:show="show.modal.pic"
+        transform-origin="mouse"
+        :z-index="999"
+        preset="card"
+        style="width: 100%; position: fixed; top: 0px; bottom: 0px"
+      >
+        <template #header>
+          <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
+            {{ show.source.pic.name }}
+          </n-ellipsis>
+        </template>
+        <n-scrollbar style="max-height: calc(100vh - 7rem)" trigger="none">
+          <n-image
+            class="modal-pic"
+            object-fit="scale-down"
+            :src="show.source.pic.url"
+          />
+        </n-scrollbar>
+      </n-modal>
+      <n-modal
+        v-model:show="show.modal.video"
+        transform-origin="mouse"
+        :z-index="999"
+        preset="card"
+        style="width: 100%; position: fixed; top: 0px; bottom: 0px"
+      >
+        <template #header>
+          <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
+            {{ show.source.video.name }}
+          </n-ellipsis>
+        </template>
+        <n-scrollbar style="max-height: calc(100vh - 7rem)" trigger="none">
+          <div style="text-align: center">
+            <video-player
+              class="video-js vjs-default-skin vjs-big-play-centered"
+              :options="getPlayerOption(show.source.video.url)"
+              :volume="0.6"
+            />
+          </div>
+        </n-scrollbar>
+      </n-modal>
     </n-config-provider>
   </div>
 </template>
@@ -231,6 +362,8 @@ export default { name: 'App' }
 <script setup lang="ts">
 import { IosAirplane } from '@vicons/ionicons4'
 import { Reload } from '@vicons/ionicons5'
+import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
+import { Eye } from '@vicons/fa'
 import {
   GetListByName,
   FileInfo,
@@ -254,7 +387,43 @@ const baseUrl = import.meta.env.VITE_APP_BASE_API
 const picFileTypeList = reactive<string[]>(['.jpg'])
 const videoFileTypeList = reactive<string[]>(['.mp4'])
 
+const show = reactive<{
+  modal: { pic: boolean; video: boolean }
+  source: {
+    pic: { name: string; url: string }
+    video: { name: string; url: string }
+  }
+}>({
+  modal: {
+    pic: false,
+    video: false,
+  },
+  source: {
+    pic: { name: '', url: '' },
+    video: { name: '', url: '' },
+  },
+})
+
+function showModal(item: FileInfo) {
+  if (picFileTypeList.indexOf(item.file_type.toLowerCase()) > -1) {
+    showPicModal(item.name, baseUrl + item.url)
+  }
+  if (videoFileTypeList.indexOf(item.file_type.toLowerCase()) > -1) {
+    showVideoModal(item.name, baseUrl + item.url)
+  }
+}
+
+function showPicModal(name: string, url: string) {
+  show.source.pic = { name: name, url: url }
+  show.modal.pic = true
+}
+function showVideoModal(name: string, url: string) {
+  show.source.video = { name: name, url: url }
+  show.modal.video = true
+}
+
 const search = reactive<{
+  mode: string
   history: string[]
   list: FileInfo[]
   total: number
@@ -268,6 +437,7 @@ const search = reactive<{
     rows: number
   }
 }>({
+  mode: 'table',
   history: [],
   list: [],
   loading: false,
@@ -438,10 +608,26 @@ function getPlayerOption(url: string): VideoJsPlayerOptions {
 }
 </script>
 
-<style scoped>
-:deep(.vjs-paused .vjs-big-play-button, .vjs-paused
-    .vjs-has-started
-    .vjs-big-play-button) {
-  display: block !important;
+<style scoped lang="scss">
+html {
+  :deep {
+    .vjs-paused .vjs-big-play-button,
+    .vjs-paused .vjs-has-started .vjs-big-play-button {
+      display: block !important;
+    }
+  }
+}
+.modal-pic {
+  :deep {
+    img {
+      width: 100%;
+    }
+  }
+}
+
+@media screen and (min-width: 320px) and (max-width: 480px) {
+  .table-catalog {
+    display: none;
+  }
 }
 </style>

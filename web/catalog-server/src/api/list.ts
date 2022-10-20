@@ -5,6 +5,7 @@ export interface FileInfo {
   [key: string]: any
   name: string
   src: string
+  url: string
   file_type: string
 }
 export class GetListByName extends Request {

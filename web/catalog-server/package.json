@@ -37,6 +37,7 @@
     "js-cookie": "^3.0.1",
     "naive-ui": "^2.33.5",
     "prettier-eslint": "^15.0.1",
+    "sass": "^1.55.0",
     "typescript": "^4.8.4",
     "vfonts": "0.0.3",
     "video.js": "^7.20.3",
