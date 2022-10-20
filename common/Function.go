@@ -38,7 +38,7 @@ func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
 		} else if rows >= len(list) {
 			return list[0:len(list)]
 		} else {
-			return list[1 : page*rows]
+			return list[(page-1)*rows : len(list)]
 		}
 	}
 }

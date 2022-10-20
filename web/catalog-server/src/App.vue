@@ -143,7 +143,7 @@
                                 ) > -1
                               "
                               style="height: 16.8rem"
-                              object-fit="fill"
+                              object-fit="contain"
                               lazy
                               :src="baseUrl + item.url"
                             />
@@ -210,7 +210,7 @@
                   @update:page="
                     (page:number) => {
                       search.conditon.page = page
-                      getListByName(search.conditon.name)
+                      getListByName(search.conditon.name,page)
                     }
                   "
                 >
@@ -297,7 +297,7 @@ function searchFunction() {
       Cookies.set('search.history', JSON.stringify(search.history))
     }
   }
-  getListByName(search.conditon.name)
+  getListByName(search.conditon.name, 1)
 }
 searchFunction()
 
@@ -336,11 +336,11 @@ function getCatalogOption() {
 }
 getCatalogOption()
 
-function getListByName(name = '') {
+function getListByName(name = '', page = 1) {
   search.loading = true
   search.conditon.catalog = null
   search.conditon.fileType = null
-  search.conditon.page = 1
+  search.conditon.page = page
   new GetListByName()
     .setParam({
       name: name,
@@ -401,7 +401,7 @@ function getListByCatalog() {
 
 function seeOther() {
   search.conditon.name = ''
-  getListByName('')
+  getListByName('', 1)
 }
 
 function getPlayerOption(url: string): VideoJsPlayerOptions {
@@ -416,6 +416,7 @@ function getPlayerOption(url: string): VideoJsPlayerOptions {
     language: 'zh-CN',
     aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
     fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+    fill: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
     html5: { hls: { withCredentials: false } }, // 可以使用m3u8视频
     sources: [
       {
