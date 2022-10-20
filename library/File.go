@@ -48,7 +48,7 @@ func (f *File) Init() {
 func (f *File) catalogRecurrence(src string) {
 	dir, err := os.ReadDir(src)
 	if err != nil {
-		fmt.Println("读取路径错误" + err.Error())
+		panic("读取路径错误" + err.Error())
 		return
 	}
 	eol := "/"

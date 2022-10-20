@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gorilla/schema"
 	"net/url"
 	"os"
@@ -44,7 +45,9 @@ func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
 }
 
 func GetCurrentPath() (string, error) {
+	fmt.Printf("%v\n", os.Args)
 	file, err := exec.LookPath(os.Args[0])
+
 	if err != nil {
 		return "", err
 	}

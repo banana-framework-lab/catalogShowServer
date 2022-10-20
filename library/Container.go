@@ -24,7 +24,7 @@ func GetContainer() *Container {
 		if containerInstance == nil {
 			rootSrcValue, err := common.GetCurrentPath()
 			if err != nil {
-				fmt.Println(err.Error())
+				panic("获取根目录路径错误" + err.Error())
 			} else {
 				rootSrc = filepath.Join(rootSrcValue, "/../")
 			}
@@ -60,6 +60,7 @@ func (ctn *Container) GetRoute() *Route {
 }
 
 func (ctn *Container) ShowStartText() {
+	fmt.Println("")
 	fmt.Println("╔═══╗   ╔╗   ╔╗      ╔═══╦╗         ╔═══╗")
 	fmt.Println("║╔═╗║  ╔╝╚╗  ║║      ║╔═╗║║         ║╔═╗║")
 	fmt.Println("║║ ╚╬══╬╗╔╬══╣║╔══╦══╣╚══╣╚═╦══╦╗╔╗╔╣╚══╦══╦═╦╗╔╦══╦═╗")

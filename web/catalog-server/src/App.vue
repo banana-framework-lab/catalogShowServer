@@ -37,7 +37,11 @@
               </n-grid-item>
               <n-grid-item
                 span="1"
-                style="align-items: center; display: flex; justify-content: end"
+                style="
+                  align-items: center;
+                  display: -webkit-flex;
+                  justify-content: flex-end;
+                "
               >
                 <n-icon
                   v-if="search.mode === 'table'"
@@ -240,7 +244,7 @@
                             <div
                               style="
                                 padding-right: 1rem;
-                                display: flex;
+                                display: -webkit-flex;
                                 justify-content: space-between;
                                 align-items: center;
                                 word-break: break-all;
@@ -343,9 +347,10 @@
             {{ show.source.video.name }}
           </n-ellipsis>
         </template>
-        <n-scrollbar style="max-height: calc(100vh - 7rem)" trigger="none">
+        <n-scrollbar trigger="none" style="max-height: calc(100vh - 7rem)">
           <div style="text-align: center">
             <video-player
+              style="height: calc(100vh - 12rem)"
               class="video-js vjs-default-skin vjs-big-play-centered"
               :options="getPlayerOption(show.source.video.url)"
               :volume="0.6"
