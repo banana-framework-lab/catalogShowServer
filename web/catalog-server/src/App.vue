@@ -340,6 +340,7 @@ function getListByName(name = '') {
   search.loading = true
   search.conditon.catalog = null
   search.conditon.fileType = null
+  search.conditon.page = 1
   new GetListByName()
     .setParam({
       name: name,
@@ -360,6 +361,7 @@ function getListByType() {
   search.loading = true
   search.conditon.name = ''
   search.conditon.catalog = null
+  search.conditon.page = 1
   new GetListByType()
     .setParam({
       type: String(search.conditon.fileType),
@@ -380,6 +382,7 @@ function getListByCatalog() {
   search.loading = true
   search.conditon.name = ''
   search.conditon.fileType = null
+  search.conditon.page = 1
   new GetListByCatalog()
     .setParam({
       catalog: String(search.conditon.catalog),

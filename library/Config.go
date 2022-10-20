@@ -27,7 +27,7 @@ func (cfg *Config) setAbleFileTypeMap() {
 func (cfg *Config) Init() {
 	tomlConfig, err := os.ReadFile(filepath.Join(rootSrc, "/build/config.toml"))
 	if err != nil {
-		fmt.Println("配置文件读取错误")
+		fmt.Println("配置文件读取错误" + err.Error())
 		return
 	}
 
