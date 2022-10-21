@@ -157,7 +157,7 @@
                   "
                   trigger="none"
                 >
-                  <!-- <n-grid
+                  <n-grid
                     cols="1 s:2 m:4 l:5 xl:6 2xl:7"
                     responsive="screen"
                     :x-gap="15"
@@ -166,69 +166,68 @@
                     <n-grid-item
                       v-for="(item, index) in search.list"
                       :key="index"
-                    > -->
-                  <div
-                    style="
-                      display: flex;
-                      flex-wrap: wrap;
-                      justify-content: space-evenly;
-                    "
-                  >
-                    <n-card
-                      v-for="(item, index) in search.list"
-                      :key="index"
-                      style="width: 30rem"
                     >
-                      <template #cover>
-                        <div style="text-align: center">
-                          <n-image
+                      <n-card :key="index">
+                        <template #cover>
+                          <div
                             v-if="
                               picFileTypeList.indexOf(
                                 item.file_type.toLowerCase()
                               ) > -1
                             "
-                            style="height: 16.8rem"
-                            object-fit="contain"
-                            lazy
-                            :src="baseUrl + item.url"
-                          />
+                            style="
+                              display: flex;
+                              justify-content: center;
+                              align-items: center;
+                            "
+                          >
+                            <n-image
+                              style="height: 16.8rem"
+                              object-fit="contain"
+                              lazy
+                              :src="baseUrl + item.url"
+                            />
+                          </div>
                           <div
                             v-if="
                               videoFileTypeList.indexOf(
                                 item.file_type.toLowerCase()
                               ) > -1
                             "
-                            style="height: 16.8rem; text-align: center"
                           >
                             <video-player
+                              style="
+                                height: 16.8rem;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                              "
                               class="video-js vjs-default-skin vjs-big-play-centered"
                               :options="getPlayerOption(baseUrl + item.url)"
                               :volume="0.6"
                             />
                           </div>
+                        </template>
+                        <div style="word-break: break-all">
+                          <n-ellipsis
+                            expand-trigger="click"
+                            line-clamp="1"
+                            :tooltip="false"
+                          >
+                            文件名称：{{ item.name }}
+                          </n-ellipsis>
+                          <br />
+                          <n-ellipsis
+                            expand-trigger="click"
+                            line-clamp="1"
+                            :tooltip="false"
+                          >
+                            文件目录：{{ item.catalog }}
+                          </n-ellipsis>
                         </div>
-                      </template>
-                      <div style="word-break: break-all">
-                        <n-ellipsis
-                          expand-trigger="click"
-                          line-clamp="1"
-                          :tooltip="false"
-                        >
-                          文件名称：{{ item.name }}
-                        </n-ellipsis>
-                        <br />
-                        <n-ellipsis
-                          expand-trigger="click"
-                          line-clamp="1"
-                          :tooltip="false"
-                        >
-                          文件目录：{{ item.src }}
-                        </n-ellipsis>
-                      </div>
-                    </n-card>
-                  </div>
-                  <!-- </n-grid-item>
-                  </n-grid> -->
+                      </n-card>
+                    </n-grid-item>
+                  </n-grid>
                 </n-scrollbar>
                 <div v-if="search.mode === 'table'">
                   <n-table size="small" :striped="true" :single-line="false">
@@ -283,7 +282,7 @@
                             </div>
                           </td>
                           <td style="width: 50%" class="table-catalog">
-                            {{ item.src }}
+                            {{ item.catalog }}
                           </td>
                         </tr>
                       </tbody>

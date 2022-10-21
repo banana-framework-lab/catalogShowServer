@@ -1,11 +1,13 @@
 import { Request } from './request'
 
 export interface FileInfo {
-  [key: string]: any
+  // [key: string]: any
+  index: number
   name: string
-  src: string
-  url: string
   file_type: string
+  catalog: string
+  url: string
+  absolute_src: string
 }
 export class GetListByCondition extends Request {
   public url = '/list/getListByCondition'
