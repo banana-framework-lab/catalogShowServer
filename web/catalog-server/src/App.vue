@@ -540,6 +540,8 @@ function getListByCondition(page = 1) {
 
 function seeOther() {
   search.conditon.name = ''
+  search.conditon.catalog = null
+  search.conditon.fileType = null
   getListByCondition(1)
 }
 
