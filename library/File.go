@@ -23,21 +23,21 @@ type FileSearchOption struct {
 }
 
 type FileSearchMap struct {
-	FileTypeMap map[string][]param.FileInfo
-	CatalogMap  map[string][]param.FileInfo
+	FileTypeMap map[string][]int
+	CatalogMap  map[string][]int
 }
 
 func (f *File) Init() {
-	f.SearchMap.FileTypeMap = map[string][]param.FileInfo{}
-	f.SearchMap.CatalogMap = map[string][]param.FileInfo{}
+	f.SearchMap.FileTypeMap = map[string][]int{}
+	f.SearchMap.CatalogMap = map[string][]int{}
 
 	f.catalogRecurrence(rootSrc)
 
-	// 通过map生成list
+	// 通过option map生成option list
 	for key := range f.SearchMap.FileTypeMap {
 		f.SearchOption.FileTypeList = append(f.SearchOption.FileTypeList, key)
 	}
-
+	// 通过option map生成option list
 	for key := range f.SearchMap.CatalogMap {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
@@ -66,26 +66,27 @@ func (f *File) catalogRecurrence(src string) {
 				}
 
 				file := param.FileInfo{
-					Url:         "/file/?file=" + srcValue + eol + fileInfo.Name(),
-					AbsoluteSrc: src + eol + fileInfo.Name(),
-					Src:         srcValue,
+					Index:       len(f.FileList),
 					Name:        fileInfo.Name(),
 					FileType:    fileType,
+					Catalog:     srcValue,
+					Url:         "/file/?file=" + srcValue + eol + fileInfo.Name(),
+					AbsoluteSrc: src + eol + fileInfo.Name(),
 				}
 				f.FileList = append(f.FileList, file)
 
 				if _, ok := f.SearchMap.CatalogMap[srcValue]; ok {
-					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file)
+					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file.Index)
 				} else {
-					f.SearchMap.CatalogMap[srcValue] = []param.FileInfo{}
-					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file)
+					f.SearchMap.CatalogMap[srcValue] = []int{}
+					f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file.Index)
 				}
 
 				if _, ok := f.SearchMap.FileTypeMap[fileType]; ok {
-					f.SearchMap.FileTypeMap[fileType] = append(f.SearchMap.FileTypeMap[fileType], file)
+					f.SearchMap.FileTypeMap[fileType] = append(f.SearchMap.FileTypeMap[fileType], file.Index)
 				} else {
-					f.SearchMap.FileTypeMap[fileType] = []param.FileInfo{}
-					f.SearchMap.FileTypeMap[fileType] = append(f.SearchMap.FileTypeMap[fileType], file)
+					f.SearchMap.FileTypeMap[fileType] = []int{}
+					f.SearchMap.FileTypeMap[fileType] = append(f.SearchMap.FileTypeMap[fileType], file.Index)
 				}
 
 			}

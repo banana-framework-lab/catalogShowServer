@@ -124,7 +124,7 @@
                   filterable
                   :options="fileTypeOption"
                   placeholder="文件类型"
-                  @update:value="getListByType"
+                  @update:value="getListByCondition(1)"
                 />
               </n-grid-item>
               <n-grid-item>
@@ -134,7 +134,7 @@
                   filterable
                   :options="catalogOption"
                   placeholder="文件目录"
-                  @update:value="getListByCatalog"
+                  @update:value="getListByCondition(1)"
                 />
               </n-grid-item>
             </n-grid>
@@ -157,7 +157,7 @@
                   "
                   trigger="none"
                 >
-                  <n-grid
+                  <!-- <n-grid
                     cols="1 s:2 m:4 l:5 xl:6 2xl:7"
                     responsive="screen"
                     :x-gap="15"
@@ -166,57 +166,69 @@
                     <n-grid-item
                       v-for="(item, index) in search.list"
                       :key="index"
+                    > -->
+                  <div
+                    style="
+                      display: flex;
+                      flex-wrap: wrap;
+                      justify-content: space-evenly;
+                    "
+                  >
+                    <n-card
+                      v-for="(item, index) in search.list"
+                      :key="index"
+                      style="width: 30rem"
                     >
-                      <n-card>
-                        <template #cover>
-                          <div style="text-align: center">
-                            <n-image
-                              v-if="
-                                picFileTypeList.indexOf(
-                                  item.file_type.toLowerCase()
-                                ) > -1
-                              "
-                              style="height: 16.8rem"
-                              object-fit="contain"
-                              lazy
-                              :src="baseUrl + item.url"
+                      <template #cover>
+                        <div style="text-align: center">
+                          <n-image
+                            v-if="
+                              picFileTypeList.indexOf(
+                                item.file_type.toLowerCase()
+                              ) > -1
+                            "
+                            style="height: 16.8rem"
+                            object-fit="contain"
+                            lazy
+                            :src="baseUrl + item.url"
+                          />
+                          <div
+                            v-if="
+                              videoFileTypeList.indexOf(
+                                item.file_type.toLowerCase()
+                              ) > -1
+                            "
+                            style="height: 16.8rem; text-align: center"
+                          >
+                            <video-player
+                              class="video-js vjs-default-skin vjs-big-play-centered"
+                              :options="getPlayerOption(baseUrl + item.url)"
+                              :volume="0.6"
                             />
-                            <div
-                              v-if="
-                                videoFileTypeList.indexOf(
-                                  item.file_type.toLowerCase()
-                                ) > -1
-                              "
-                              style="height: 16.8rem; text-align: center"
-                            >
-                              <video-player
-                                class="video-js vjs-default-skin vjs-big-play-centered"
-                                :options="getPlayerOption(baseUrl + item.url)"
-                                :volume="0.6"
-                              />
-                            </div>
                           </div>
-                        </template>
-                        <div style="word-break: break-all">
-                          <n-ellipsis
-                            expand-trigger="click"
-                            line-clamp="1"
-                            :tooltip="false"
-                          >
-                            文件名称：{{ item.name }}
-                          </n-ellipsis>
-                          <br />
-                          <n-ellipsis
-                            expand-trigger="click"
-                            line-clamp="1"
-                            :tooltip="false"
-                          >
-                            文件目录：{{ item.src }}
-                          </n-ellipsis>
                         </div>
-                      </n-card>
-                    </n-grid-item>
-                  </n-grid>
+                      </template>
+                      <div style="word-break: break-all">
+                        <n-ellipsis
+                          expand-trigger="click"
+                          line-clamp="1"
+                          :tooltip="false"
+                        >
+                          文件名称：{{ item.name }}
+                        </n-ellipsis>
+                        <br />
+                        <n-ellipsis
+                          expand-trigger="click"
+                          line-clamp="1"
+                          :tooltip="false"
+                        >
+                          文件目录：{{ item.src }}
+                        </n-ellipsis>
+                      </div>
+                    </n-card>
+                  </div>
+                  <!-- </n-grid-item>
+                  </n-grid> -->
                 </n-scrollbar>
                 <div v-if="search.mode === 'table'">
                   <n-table size="small" :striped="true" :single-line="false">
@@ -301,12 +313,7 @@
                   :page="search.conditon.page"
                   :page-size="search.conditon.rows"
                   :page-slot="5"
-                  @update:page="
-                    (page:number) => {
-                      search.conditon.page = page
-                      getListByName(search.conditon.name,page)
-                    }
-                  "
+                  @update:page="(page:number)=>{getListByCondition(page)}"
                 >
                   <template #goto> 跳转 </template>
                 </n-pagination>
@@ -370,12 +377,7 @@ import { IosAirplane } from '@vicons/ionicons4'
 import { Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
 import { Eye } from '@vicons/fa'
-import {
-  GetListByName,
-  FileInfo,
-  GetListByType,
-  GetListByCatalog,
-} from '@/api/list'
+import { GetListByCondition, FileInfo } from '@/api/list'
 import {
   GetFiletypeOption,
   FileTypeOption,
@@ -473,7 +475,7 @@ function searchFunction() {
       Cookies.set('search.history', JSON.stringify(search.history))
     }
   }
-  getListByName(search.conditon.name, 1)
+  getListByCondition(1)
 }
 searchFunction()
 
@@ -512,56 +514,18 @@ function getCatalogOption() {
 }
 getCatalogOption()
 
-function getListByName(name = '', page = 1) {
+function getListByCondition(page = 1) {
   search.loading = true
-  search.conditon.catalog = null
-  search.conditon.fileType = null
   search.conditon.page = page
-  new GetListByName()
+  new GetListByCondition()
     .setParam({
-      name: name,
-      page: search.conditon.page,
-      rows: search.conditon.rows,
-    })
-    .request()
-    .then((res) => {
-      search.list = res.data.list
-      search.total = res.data.total
-    })
-    .finally(() => {
-      search.loading = false
-    })
-}
-
-function getListByType() {
-  search.loading = true
-  search.conditon.name = ''
-  search.conditon.catalog = null
-  search.conditon.page = 1
-  new GetListByType()
-    .setParam({
-      type: String(search.conditon.fileType),
-      page: search.conditon.page,
-      rows: search.conditon.rows,
-    })
-    .request()
-    .then((res) => {
-      search.list = res.data.list
-      search.total = res.data.total
-    })
-    .finally(() => {
-      search.loading = false
-    })
-}
-
-function getListByCatalog() {
-  search.loading = true
-  search.conditon.name = ''
-  search.conditon.fileType = null
-  search.conditon.page = 1
-  new GetListByCatalog()
-    .setParam({
-      catalog: String(search.conditon.catalog),
+      name: search.conditon.name,
+      file_type: search.conditon.fileType
+        ? String(search.conditon.fileType)
+        : undefined,
+      catalog: search.conditon.catalog
+        ? String(search.conditon.catalog)
+        : undefined,
       page: search.conditon.page,
       rows: search.conditon.rows,
     })
@@ -577,7 +541,7 @@ function getListByCatalog() {
 
 function seeOther() {
   search.conditon.name = ''
-  getListByName('', 1)
+  getListByCondition(1)
 }
 
 function getPlayerOption(url: string): VideoJsPlayerOptions {
@@ -615,16 +579,15 @@ function getPlayerOption(url: string): VideoJsPlayerOptions {
 </script>
 
 <style scoped lang="scss">
-html {
-  :deep {
-    .vjs-paused .vjs-big-play-button,
-    .vjs-paused .vjs-has-started .vjs-big-play-button {
-      display: block !important;
-    }
+:deep() {
+  .vjs-paused .vjs-big-play-button,
+  .vjs-paused .vjs-has-started .vjs-big-play-button {
+    display: block !important;
   }
 }
+
 .modal-pic {
-  :deep {
+  :deep() {
     img {
       width: 100%;
     }

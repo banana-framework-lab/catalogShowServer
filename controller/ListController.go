@@ -10,9 +10,7 @@ type ListController struct{}
 
 func (f ListController) RouterList() []param.Router {
 	return []param.Router{
-		param.NewRouter("/list/getListByName", f.getListByName),
-		param.NewRouter("/list/getListByType", f.getListByType),
-		param.NewRouter("/list/getListByCatalog", f.getListByCatalog),
+		param.NewRouter("/list/getListByCondition", f.getListByCondition),
 		param.NewRouter("/list/getFiletypeOption", f.getFiletypeOption),
 		param.NewRouter("/list/getCatalogOption", f.getCatalogOption),
 	}
@@ -42,88 +40,25 @@ func (ListController) getCatalogOption(req param.Request) param.Response {
 	}
 }
 
-func (ListController) getListByName(req param.Request) param.Response {
-	type ReqData struct {
-		Name string `json:"name"`
-		Page uint8  `json:"page"`
-		Rows uint32 `json:"rows"`
-	}
-	var data = ReqData{
-		Name: "",
-		Page: param.DefaultPage,
-		Rows: param.DefaultRows,
+func (ListController) getListByCondition(req param.Request) param.Response {
+	var data = struct {
+		Name     string `schema:"name"`
+		FileType string `schema:"file_type"`
+		Catalog  string `schema:"catalog"`
+		Page     int    `schema:"page"`
+		Rows     int    `schema:"rows"`
+	}{
+		Name:     "",
+		FileType: "",
+		Catalog:  "",
+		Page:     param.DefaultPage,
+		Rows:     param.DefaultRows,
 	}
 	err := req.GET(&data)
-	if err == nil {
-		var l = logic.ListLogic{}
-		var list, total = l.GetListByName(data.Name, data.Page, data.Rows)
-		return param.Response{
-			Code:    param.RequestSuccess,
-			Message: "成功获取",
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: list, Total: total},
-		}
-	} else {
-		return param.Response{
-			Code:    param.RequestFail,
-			Message: "失败获取" + err.Error(),
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: []param.FileInfo{}, Total: 0},
-		}
-	}
-}
 
-func (ListController) getListByType(req param.Request) param.Response {
-	type ReqData struct {
-		Type string `json:"type"`
-		Page uint8  `json:"page"`
-		Rows uint32 `json:"rows"`
-	}
-	var data = ReqData{
-		Page: param.DefaultPage,
-		Rows: param.DefaultRows,
-	}
-	err := req.POST(&data)
 	if err == nil {
 		var l = logic.ListLogic{}
-		var list, total = l.GetListByType(data.Type, data.Page, data.Rows)
-		return param.Response{
-			Code:    param.RequestSuccess,
-			Message: "成功获取",
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: list, Total: total},
-		}
-	} else {
-		return param.Response{
-			Code:    param.RequestFail,
-			Message: "失败获取" + err.Error(),
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: []param.FileInfo{}, Total: 0},
-		}
-	}
-}
-func (ListController) getListByCatalog(req param.Request) param.Response {
-	type ReqData struct {
-		Catalog string `json:"catalog"`
-		Page    uint8  `json:"page"`
-		Rows    uint32 `json:"rows"`
-	}
-	var data = ReqData{
-		Page: param.DefaultPage,
-		Rows: param.DefaultRows,
-	}
-	err := req.POST(&data)
-	if err == nil {
-		var l = logic.ListLogic{}
-		var list, total = l.GetListByCatalog(data.Catalog, data.Page, data.Rows)
+		var list, total = l.GetListByCondition(data.Name, data.FileType, data.Catalog, data.Page, data.Rows)
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: "成功获取",

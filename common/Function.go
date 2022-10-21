@@ -30,7 +30,7 @@ func DecodeQuery(data url.Values, v interface{}) error {
 	return nil
 }
 
-func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
+func GetSliceKeyByPageRows[T any](list []T, page int, rows int) []T {
 	if len(list) >= (page * rows) {
 		return list[(page-1)*rows : page*rows]
 	} else {
@@ -42,6 +42,32 @@ func GetArrayKeyByPageRows[T any](list []T, page int, rows int) []T {
 			return list[(page-1)*rows : len(list)]
 		}
 	}
+}
+
+func GetSliceIntersect[T comparable](a []T, b []T) []T {
+	var inter []T
+	inter = []T{}
+	mp := map[T]bool{}
+
+	if len(a) == 0 {
+		return b
+	}
+	if len(b) == 0 {
+		return a
+	}
+
+	for _, value := range a {
+		if _, ok := mp[value]; !ok {
+			mp[value] = true
+		}
+	}
+	for _, s := range b {
+		if _, ok := mp[s]; ok {
+			inter = append(inter, s)
+		}
+	}
+
+	return inter
 }
 
 func GetCurrentPath() (string, error) {

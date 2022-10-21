@@ -28,34 +28,47 @@ func (ListLogic) GetCatalogOption() body.CatalogOptionList {
 	return result
 }
 
-func (ListLogic) GetListByName(name string, page uint8, rows uint32) ([]param.FileInfo, int) {
+func (ListLogic) GetListByCondition(Name string, FileType string, Catalog string, Page int, Rows int) ([]param.FileInfo, int) {
 	var result []param.FileInfo
 	result = []param.FileInfo{}
-	if name == "" {
-		return common.GetArrayKeyByPageRows(library.GetContainer().GetFile().FileList, int(page), int(rows)), len(library.GetContainer().GetFile().FileList)
+
+	var idListByCatalog []int
+	idListByCatalog = []int{}
+	if Catalog != "" {
+		if _, ok := library.GetContainer().GetFile().SearchMap.CatalogMap[Catalog]; ok {
+			idListByCatalog = library.GetContainer().GetFile().SearchMap.CatalogMap[Catalog]
+		}
+	}
+
+	var idListByFileType []int
+	idListByFileType = []int{}
+	if FileType != "" {
+		if _, ok := library.GetContainer().GetFile().SearchMap.FileTypeMap[FileType]; ok {
+			idListByFileType = library.GetContainer().GetFile().SearchMap.FileTypeMap[FileType]
+		}
+	}
+
+	idListByIndex := common.GetSliceIntersect(idListByCatalog, idListByFileType)
+
+	var list []param.FileInfo
+	list = []param.FileInfo{}
+
+	if len(idListByIndex) == 0 && Catalog == "" && FileType == "" {
+		list = library.GetContainer().GetFile().FileList
 	} else {
-		for _, f := range library.GetContainer().GetFile().FileList {
-			if strings.Contains(f.Name, name) {
+		for _, indexValue := range idListByIndex {
+			list = append(list, library.GetContainer().GetFile().FileList[indexValue])
+		}
+	}
+
+	if Name == "" {
+		return common.GetSliceKeyByPageRows(list, Page, Rows), len(list)
+	} else {
+		for _, f := range list {
+			if strings.Contains(f.Name, Name) {
 				result = append(result, f)
 			}
 		}
-		return common.GetArrayKeyByPageRows(result, int(page), int(rows)), len(result)
-	}
-
-}
-
-func (ListLogic) GetListByType(fileType string, page uint8, rows uint32) ([]param.FileInfo, int) {
-	if list, ok := library.GetContainer().GetFile().SearchMap.FileTypeMap[fileType]; ok {
-		return common.GetArrayKeyByPageRows(list, int(page), int(rows)), len(list)
-	} else {
-		return []param.FileInfo{}, 0
-	}
-}
-
-func (ListLogic) GetListByCatalog(fileType string, page uint8, rows uint32) ([]param.FileInfo, int) {
-	if list, ok := library.GetContainer().GetFile().SearchMap.CatalogMap[fileType]; ok {
-		return common.GetArrayKeyByPageRows(list, int(page), int(rows)), len(list)
-	} else {
-		return []param.FileInfo{}, 0
+		return common.GetSliceKeyByPageRows(result, Page, Rows), len(result)
 	}
 }
