@@ -6,6 +6,7 @@ export interface FileInfo {
   name: string
   file_type: string
   catalog: string
+  open_width: string
   url: string
   absolute_src: string
 }

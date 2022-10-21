@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	AbleFileTypeMap  map[string]bool
-	AbleFileTypeList []string  `toml:"ableFileType"`
-	Web              WebConfig `toml:"web"`
+	SystemAbleFileTypeMap map[string]bool
+	AbleFileTypeMap       map[string]bool
+	AbleFileTypeList      []string  `toml:"ableFileType"`
+	Web                   WebConfig `toml:"web"`
 }
 
 type WebConfig struct {
@@ -20,6 +21,10 @@ func (cfg *Config) setAbleFileTypeMap() {
 
 	for _, value := range cfg.AbleFileTypeList {
 		cfg.AbleFileTypeMap[value] = true
+	}
+
+	for key, _ := range openWithMap {
+		cfg.SystemAbleFileTypeMap[key] = true
 	}
 }
 

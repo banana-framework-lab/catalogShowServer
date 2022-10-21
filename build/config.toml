@@ -1,4 +1,4 @@
-ableFileType = [".sample",".mp4",".jpg"]
+ableFileType = [".sample",".mp4",".jpg",".tif"]
 
 [web]
 port = '8088'

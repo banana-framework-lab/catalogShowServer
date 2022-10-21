@@ -9,10 +9,11 @@ import (
 
 func main() {
 	base.InitController()
+	library.GetContainer().ShowStartText()
 	library.GetContainer().GetConfig().Init()
 	library.GetContainer().GetFile().Init()
 	library.GetContainer().GetRoute().Init()
-	library.GetContainer().ShowStartText()
+	library.GetContainer().ShowReadyText()
 
 	// server
 	srv := http.Server{

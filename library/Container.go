@@ -30,8 +30,9 @@ func GetContainer() *Container {
 			}
 			containerInstance = &Container{
 				config: Config{
-					AbleFileTypeMap:  map[string]bool{},
-					AbleFileTypeList: []string{},
+					AbleFileTypeMap:       map[string]bool{},
+					SystemAbleFileTypeMap: map[string]bool{},
+					AbleFileTypeList:      []string{},
 				},
 				file: File{
 					FileList: []param.FileInfo{},
@@ -70,6 +71,11 @@ func (ctn *Container) ShowStartText() {
 	fmt.Println("                  ╔═╝║")
 	fmt.Println("                  ╚══╝")
 	fmt.Println("")
+	fmt.Println("CatalogShowServer is reading the file list")
+	fmt.Println("")
+}
+
+func (ctn *Container) ShowReadyText() {
 	fmt.Println("CatalogShowServer Ready")
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")

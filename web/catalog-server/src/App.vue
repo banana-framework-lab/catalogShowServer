@@ -170,11 +170,7 @@
                       <n-card :key="index">
                         <template #cover>
                           <div
-                            v-if="
-                              picFileTypeList.indexOf(
-                                item.file_type.toLowerCase()
-                              ) > -1
-                            "
+                            v-if="item.open_width === 'image'"
                             style="
                               display: flex;
                               justify-content: center;
@@ -188,13 +184,7 @@
                               :src="baseUrl + item.url"
                             />
                           </div>
-                          <div
-                            v-if="
-                              videoFileTypeList.indexOf(
-                                item.file_type.toLowerCase()
-                              ) > -1
-                            "
-                          >
+                          <div v-if="item.open_width === 'video'">
                             <video-player
                               style="
                                 height: 16.8rem;
@@ -391,9 +381,6 @@ import { VideoJsPlayerOptions } from 'video.js'
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 
-const picFileTypeList = reactive<string[]>(['.jpg'])
-const videoFileTypeList = reactive<string[]>(['.mp4'])
-
 const show = reactive<{
   modal: { pic: boolean; video: boolean }
   source: {
@@ -412,10 +399,10 @@ const show = reactive<{
 })
 
 function showModal(item: FileInfo) {
-  if (picFileTypeList.indexOf(item.file_type.toLowerCase()) > -1) {
+  if (item.open_width === 'image') {
     showPicModal(item.name, baseUrl + item.url)
   }
-  if (videoFileTypeList.indexOf(item.file_type.toLowerCase()) > -1) {
+  if (item.open_width === 'video') {
     showVideoModal(item.name, baseUrl + item.url)
   }
 }
