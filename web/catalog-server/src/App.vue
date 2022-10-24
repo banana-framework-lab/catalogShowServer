@@ -213,7 +213,7 @@
                               </n-icon>
                             </div>
                             <div style="width: 100%">
-                              <Player>
+                              <Player autoplay loop>
                                 <DefaultUi></DefaultUi>
                                 <Audio
                                   :media-title="item.name"
@@ -343,9 +343,9 @@
           </n-layout-content>
         </n-layout>
       </n-space>
+      <!-- 弹窗 -->
       <n-modal
-        v-model:show="show.modal.pic"
-        transform-origin="mouse"
+        v-model:show="show.modal.show"
         :z-index="999"
         preset="card"
         style="width: 100%; position: fixed; top: 0px; bottom: 0px"
@@ -355,28 +355,18 @@
             {{ show.source.pic.name }}
           </n-ellipsis>
         </template>
-        <n-scrollbar style="max-height: calc(100vh - 7rem)" trigger="none">
+        <n-scrollbar
+          v-if="show.modal.type === 'pic'"
+          style="max-height: calc(100vh - 7rem)"
+          trigger="none"
+        >
           <n-image
             class="modal-pic"
             object-fit="scale-down"
             :src="show.source.pic.url"
           />
         </n-scrollbar>
-      </n-modal>
-      <n-modal
-        v-if="show.modal.video"
-        v-model:show="show.modal.video"
-        transform-origin="mouse"
-        :z-index="999"
-        preset="card"
-        style="width: 100%; position: fixed; top: 0px; bottom: 0px"
-      >
-        <template #header>
-          <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
-            {{ show.source.video.name }}
-          </n-ellipsis>
-        </template>
-        <n-scrollbar trigger="none">
+        <n-scrollbar v-if="show.modal.type === 'video'" trigger="none">
           <div style="text-align: center">
             <Player style="--vm-player-theme: #63e2b7">
               <Video>
@@ -386,41 +376,14 @@
             </Player>
           </div>
         </n-scrollbar>
-      </n-modal>
-      <n-modal
-        v-if="show.modal.audio"
-        v-model:show="show.modal.audio"
-        transform-origin="mouse"
-        :z-index="999"
-        preset="card"
-        style="width: 100%; position: fixed; top: 0px; bottom: 0px"
-      >
-        <template #header>
-          <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
-            {{ show.source.audio.name }}
-          </n-ellipsis>
-        </template>
-        <div
-          style="
-            height: 16.8rem;
-            display: flex;
-            flex-flow: column;
-            align-items: center;
-            justify-content: center;
-          "
-        >
+        <div v-if="show.modal.type === 'audio'" class="modal-audio">
           <div>
             <n-icon size="155" color="#63e2b7">
               <MusicVideoOutlined />
             </n-icon>
           </div>
           <div style="width: 100%">
-            <Player
-              :playsinline="false"
-              :can-autoplay="true"
-              :autoplay="true"
-              loop
-            >
+            <Player autoplay loop>
               <DefaultUi></DefaultUi>
               <Audio :media-title="show.source.audio.name">
                 <source :data-src="show.source.audio.url" />
@@ -459,7 +422,10 @@ const listShowRef = ref<InstanceType<typeof NGrid>>()
 const tableShowRef = ref<InstanceType<typeof NTable>>()
 
 const show = reactive<{
-  modal: { pic: boolean; video: boolean; audio: boolean }
+  modal: {
+    show: boolean
+    type: string
+  }
   source: {
     pic: { name: string; url: string }
     video: { name: string; url: string }
@@ -467,9 +433,8 @@ const show = reactive<{
   }
 }>({
   modal: {
-    pic: false,
-    video: false,
-    audio: false,
+    show: false,
+    type: '',
   },
   source: {
     pic: { name: '', url: '' },
@@ -479,32 +444,23 @@ const show = reactive<{
 })
 
 function showModal(item: FileInfo) {
+  var name = item.name
+  var url = baseUrl + item.url
   switch (item.open_width) {
     case 'image':
-      showPicModal(item.name, baseUrl + item.url)
+      show.source.pic = { name, url }
+      show.modal.type = 'pic'
       break
     case 'video':
-      showVideoModal(item.name, baseUrl + item.url)
+      show.source.video = { name, url }
+      show.modal.type = 'video'
       break
     case 'audio':
-      showAudioModal(item.name, baseUrl + item.url)
+      show.source.audio = { name, url }
+      show.modal.type = 'audio'
       break
   }
-}
-
-function showPicModal(name: string, url: string) {
-  show.source.pic = { name: name, url: url }
-  show.modal.pic = true
-}
-
-function showVideoModal(name: string, url: string) {
-  show.source.video = { name: name, url: url }
-  show.modal.video = true
-}
-
-function showAudioModal(name: string, url: string) {
-  show.source.audio = { name: name, url: url }
-  show.modal.audio = true
+  show.modal.show = true
 }
 
 const search = reactive<{
@@ -529,8 +485,8 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    fileType: '.mp3',
-    // fileType: null,
+    // fileType: '.mp3',
+    fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
@@ -644,6 +600,14 @@ function seeOther() {
       width: 100%;
     }
   }
+}
+
+.modal-audio {
+  height: 16.8rem;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
 }
 
 @media screen and (min-width: 320px) and (max-width: 480px) {
