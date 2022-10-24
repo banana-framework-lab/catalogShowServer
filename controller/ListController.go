@@ -16,7 +16,7 @@ func (f ListController) RouterList() []param.Router {
 	}
 }
 
-func (ListController) getFiletypeOption(req param.Request) param.Response {
+func (ListController) getFiletypeOption(_ param.Request) param.Response {
 	var l = logic.ListLogic{}
 	var options = l.GetFiletypeOption()
 	return param.Response{
@@ -28,7 +28,7 @@ func (ListController) getFiletypeOption(req param.Request) param.Response {
 	}
 }
 
-func (ListController) getCatalogOption(req param.Request) param.Response {
+func (ListController) getCatalogOption(_ param.Request) param.Response {
 	var l = logic.ListLogic{}
 	var options = l.GetCatalogOption()
 	return param.Response{

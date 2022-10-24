@@ -185,12 +185,44 @@
                               :src="baseUrl + item.url"
                             />
                           </div>
-                          <div v-if="item.open_width === 'video'">
-                            <Player controls theme="dark">
-                              <Video>
-                                <source :data-src="baseUrl + item.url" />
-                              </Video>
-                            </Player>
+                          <div
+                            v-if="item.open_width === 'video'"
+                            style="height: 16.8rem"
+                          >
+                            <div style="width: 100%">
+                              <Player controls theme="dark">
+                                <Video>
+                                  <source :data-src="baseUrl + item.url" />
+                                </Video>
+                              </Player>
+                            </div>
+                          </div>
+                          <div
+                            v-if="item.open_width === 'audio'"
+                            style="
+                              height: 16.8rem;
+                              display: flex;
+                              flex-flow: column;
+                              align-items: center;
+                              justify-content: center;
+                            "
+                          >
+                            <div>
+                              <n-icon size="155" color="#63e2b7">
+                                <MusicVideoOutlined />
+                              </n-icon>
+                            </div>
+                            <div style="width: 100%">
+                              <Player>
+                                <DefaultUi></DefaultUi>
+                                <Audio
+                                  :media-title="item.name"
+                                  cross-origin="anonymous"
+                                >
+                                  <source :data-src="baseUrl + item.url" />
+                                </Audio>
+                              </Player>
+                            </div>
                           </div>
                         </template>
                         <div style="word-break: break-all">
@@ -355,6 +387,48 @@
           </div>
         </n-scrollbar>
       </n-modal>
+      <n-modal
+        v-if="show.modal.audio"
+        v-model:show="show.modal.audio"
+        transform-origin="mouse"
+        :z-index="999"
+        preset="card"
+        style="width: 100%; position: fixed; top: 0px; bottom: 0px"
+      >
+        <template #header>
+          <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
+            {{ show.source.audio.name }}
+          </n-ellipsis>
+        </template>
+        <div
+          style="
+            height: 16.8rem;
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <div>
+            <n-icon size="155" color="#63e2b7">
+              <MusicVideoOutlined />
+            </n-icon>
+          </div>
+          <div style="width: 100%">
+            <Player
+              :playsinline="false"
+              :can-autoplay="true"
+              :autoplay="true"
+              loop
+            >
+              <DefaultUi></DefaultUi>
+              <Audio :media-title="show.source.audio.name">
+                <source :data-src="show.source.audio.url" />
+              </Audio>
+            </Player>
+          </div>
+        </div>
+      </n-modal>
     </n-config-provider>
   </div>
 </template>
@@ -366,6 +440,7 @@ export default { name: 'App' }
 import { IosAirplane } from '@vicons/ionicons4'
 import { Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
+import { MusicVideoOutlined } from '@vicons/material'
 import { Eye } from '@vicons/fa'
 import { GetListByCondition, FileInfo } from '@/api/list'
 import {
@@ -377,35 +452,43 @@ import {
 import { darkTheme, zhCN, dateZhCN, NTable, NGrid } from 'naive-ui'
 import { reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
-import { Player, Video, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
+import { Player, Video, Audio, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 const listShowRef = ref<InstanceType<typeof NGrid>>()
 const tableShowRef = ref<InstanceType<typeof NTable>>()
 
 const show = reactive<{
-  modal: { pic: boolean; video: boolean }
+  modal: { pic: boolean; video: boolean; audio: boolean }
   source: {
     pic: { name: string; url: string }
     video: { name: string; url: string }
+    audio: { name: string; url: string }
   }
 }>({
   modal: {
     pic: false,
     video: false,
+    audio: false,
   },
   source: {
     pic: { name: '', url: '' },
     video: { name: '', url: '' },
+    audio: { name: '', url: '' },
   },
 })
 
 function showModal(item: FileInfo) {
-  if (item.open_width === 'image') {
-    showPicModal(item.name, baseUrl + item.url)
-  }
-  if (item.open_width === 'video') {
-    showVideoModal(item.name, baseUrl + item.url)
+  switch (item.open_width) {
+    case 'image':
+      showPicModal(item.name, baseUrl + item.url)
+      break
+    case 'video':
+      showVideoModal(item.name, baseUrl + item.url)
+      break
+    case 'audio':
+      showAudioModal(item.name, baseUrl + item.url)
+      break
   }
 }
 
@@ -413,9 +496,15 @@ function showPicModal(name: string, url: string) {
   show.source.pic = { name: name, url: url }
   show.modal.pic = true
 }
+
 function showVideoModal(name: string, url: string) {
   show.source.video = { name: name, url: url }
   show.modal.video = true
+}
+
+function showAudioModal(name: string, url: string) {
+  show.source.audio = { name: name, url: url }
+  show.modal.audio = true
 }
 
 const search = reactive<{
@@ -440,8 +529,8 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    // fileType: '.mp4',
-    fileType: null,
+    fileType: '.mp3',
+    // fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
@@ -523,10 +612,10 @@ function getListByCondition(page = 1) {
     })
     .request()
     .then((res) => {
-      search.list = res.data.list
-      search.total = res.data.total
       listShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
       tableShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
+      search.list = res.data.list
+      search.total = res.data.total
     })
     .finally(() => {
       search.loading = false
