@@ -447,9 +447,6 @@ const search = reactive<{
     rows: 20,
   },
 })
-function showPoster(e: any) {
-  console.log(e)
-}
 
 function searchFunction() {
   if (!search.conditon.name && search.conditon.placeholder !== '输入文件名字') {
