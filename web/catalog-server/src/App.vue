@@ -377,8 +377,7 @@ import {
 import { darkTheme, zhCN, dateZhCN, NTable, NGrid } from 'naive-ui'
 import { reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
-// https://vimejs.com/
-import { Player, Video, DefaultUi } from '@vime/vue-next'
+import { Player, Video, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 const listShowRef = ref<InstanceType<typeof NGrid>>()
@@ -441,8 +440,8 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    fileType: '.mp4',
-    // fileType: null,
+    // fileType: '.mp4',
+    fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
