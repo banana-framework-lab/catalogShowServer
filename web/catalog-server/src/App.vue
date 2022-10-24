@@ -147,7 +147,7 @@
                   <Reload />
                 </n-icon>
               </template>
-              <div v-if="search.list.length > 0">
+              <div v-show="search.list.length > 0">
                 <n-scrollbar
                   v-if="search.mode === 'list'"
                   :style="
@@ -158,6 +158,7 @@
                   trigger="none"
                 >
                   <n-grid
+                    ref="listShowRef"
                     cols="1 s:2 m:4 l:5 xl:6 2xl:7"
                     responsive="screen"
                     :x-gap="15"
@@ -185,17 +186,11 @@
                             />
                           </div>
                           <div v-if="item.open_width === 'video'">
-                            <video-player
-                              style="
-                                height: 16.8rem;
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                              "
-                              class="video-js vjs-default-skin vjs-big-play-centered"
-                              :options="getPlayerOption(baseUrl + item.url)"
-                              :volume="0.6"
-                            />
+                            <Player controls theme="dark">
+                              <Video>
+                                <source :data-src="baseUrl + item.url" />
+                              </Video>
+                            </Player>
                           </div>
                         </template>
                         <div style="word-break: break-all">
@@ -238,7 +233,12 @@
                     "
                     trigger="none"
                   >
-                    <n-table size="small" :striped="true" :single-line="false">
+                    <n-table
+                      ref="tableShowRef"
+                      size="small"
+                      :striped="true"
+                      :single-line="false"
+                    >
                       <tbody>
                         <tr v-for="(item, index) in search.list" :key="index">
                           <td style="width: 50%">
@@ -280,7 +280,7 @@
                   </n-scrollbar>
                 </div>
               </div>
-              <div v-if="search.list.length <= 0">
+              <div v-show="search.list.length <= 0">
                 <n-empty description="没有文件，随机看看别的">
                   <template #icon>
                     <n-icon>
@@ -332,6 +332,7 @@
         </n-scrollbar>
       </n-modal>
       <n-modal
+        v-if="show.modal.video"
         v-model:show="show.modal.video"
         transform-origin="mouse"
         :z-index="999"
@@ -343,14 +344,14 @@
             {{ show.source.video.name }}
           </n-ellipsis>
         </template>
-        <n-scrollbar trigger="none" style="max-height: calc(100vh - 7rem)">
+        <n-scrollbar trigger="none">
           <div style="text-align: center">
-            <video-player
-              style="height: calc(100vh - 12rem)"
-              class="video-js vjs-default-skin vjs-big-play-centered"
-              :options="getPlayerOption(show.source.video.url)"
-              :volume="0.6"
-            />
+            <Player style="--vm-player-theme: #63e2b7">
+              <Video>
+                <source :data-src="show.source.video.url" />
+              </Video>
+              <DefaultUi />
+            </Player>
           </div>
         </n-scrollbar>
       </n-modal>
@@ -373,13 +374,15 @@ import {
   GetCatalogOption,
   CatalogOption,
 } from '@/api/option'
-import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
-import { reactive, ref } from 'vue'
+import { darkTheme, zhCN, dateZhCN, NTable, NGrid } from 'naive-ui'
+import { reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
-import { VideoPlayer } from '@videojs-player/vue'
-import { VideoJsPlayerOptions } from 'video.js'
+// https://vimejs.com/
+import { Player, Video, DefaultUi } from '@vime/vue-next'
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
+const listShowRef = ref<InstanceType<typeof NGrid>>()
+const tableShowRef = ref<InstanceType<typeof NTable>>()
 
 const show = reactive<{
   modal: { pic: boolean; video: boolean }
@@ -438,12 +441,16 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    fileType: null,
+    fileType: '.mp4',
+    // fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
   },
 })
+function showPoster(e: any) {
+  console.log(e)
+}
 
 function searchFunction() {
   if (!search.conditon.name && search.conditon.placeholder !== '输入文件名字') {
@@ -461,9 +468,12 @@ function searchFunction() {
       Cookies.set('search.history', JSON.stringify(search.history))
     }
   }
+
   getListByCondition(1)
 }
-searchFunction()
+onMounted(() => {
+  searchFunction()
+})
 
 function initHistory() {
   const history = String(Cookies.get('search.history') || '[]')
@@ -519,6 +529,8 @@ function getListByCondition(page = 1) {
     .then((res) => {
       search.list = res.data.list
       search.total = res.data.total
+      listShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
+      tableShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
     })
     .finally(() => {
       search.loading = false
@@ -530,39 +542,6 @@ function seeOther() {
   search.conditon.catalog = null
   search.conditon.fileType = null
   getListByCondition(1)
-}
-
-function getPlayerOption(url: string): VideoJsPlayerOptions {
-  const option: VideoJsPlayerOptions = {
-    height: 16.8 * 14,
-    controls: true,
-    playbackRates: [0.7, 1.0, 1.5, 2.0], //播放速度
-    autoplay: false, //如果true,浏览器准备好时开始回放。
-    muted: false, // 默认情况下将会消除任何音频。
-    loop: true, // 导致视频一结束就重新开始。
-    preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-    language: 'zh-CN',
-    aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-    fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-    fill: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-    html5: { hls: { withCredentials: false } }, // 可以使用m3u8视频
-    sources: [
-      {
-        type: '',
-        src: url, // 路径
-      },
-    ],
-    poster: '', //你的封面地址
-    // width: document.documentElement.clientWidth,
-    notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
-    controlBar: {
-      // timeDivider: true,
-      // durationDisplay: true,
-      remainingTimeDisplay: true, // 是否显示剩余时间
-      fullscreenToggle: true, //全屏按钮
-    },
-  }
-  return option
 }
 </script>
 

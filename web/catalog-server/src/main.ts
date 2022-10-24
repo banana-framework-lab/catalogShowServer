@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import './style.css'
-import VueVideoPlayer from '@videojs-player/vue'
-import 'video.js/dist/video-js.css'
+import '@vime/core/themes/default.css'
+import '@vime/core/themes/light.css'
 import App from './App.vue'
 import naive from 'naive-ui'
 
-createApp(App).use(naive).use(VueVideoPlayer).mount('#app')
+createApp(App).use(naive).mount('#app')
