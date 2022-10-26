@@ -69,16 +69,25 @@ func (f *File) Init() {
 	http.Handle("/file/", f)
 }
 
-func (f *File) catalogRecurrence(src string) {
+func (f *File) catalogRecurrence(src string) []int {
 	dir, err := os.ReadDir(src)
 	if err != nil {
 		panic("读取路径错误" + err.Error())
-		return
+		return nil
 	}
 	eol := "/"
+	var fileIndexList []int
+	fileIndexList = []int{}
 	for _, fileInfo := range dir {
 		if fileInfo.IsDir() {
-			f.catalogRecurrence(src + eol + fileInfo.Name())
+			fileIndexList = append(fileIndexList, f.catalogRecurrence(src+eol+fileInfo.Name())...)
+			if len(fileIndexList) > 0 {
+				srcValue := strings.Replace(src, rootSrc, "", 1)
+				if srcValue == "" {
+					srcValue = "/"
+				}
+				f.SearchMap.CatalogMap[srcValue] = fileIndexList
+			}
 		} else {
 			fileType := path.Ext(fileInfo.Name())
 			fileType = strings.Trim(fileType, " ")
@@ -100,6 +109,8 @@ func (f *File) catalogRecurrence(src string) {
 					}
 					f.FileList = append(f.FileList, file)
 
+					fileIndexList = append(fileIndexList, file.Index)
+
 					if _, ok := f.SearchMap.CatalogMap[srcValue]; ok {
 						f.SearchMap.CatalogMap[srcValue] = append(f.SearchMap.CatalogMap[srcValue], file.Index)
 					} else {
@@ -117,6 +128,8 @@ func (f *File) catalogRecurrence(src string) {
 			}
 		}
 	}
+
+	return fileIndexList
 }
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

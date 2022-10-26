@@ -62,8 +62,19 @@
               </n-grid-item>
             </n-grid>
           </n-layout-header>
-          <n-layout-content content-style="padding: 1rem;text-align: center;">
+          <n-layout-content
+            content-style="padding: 1rem 1rem 0rem 1rem;text-align: center;"
+          >
             <n-input-group>
+              <n-select
+                v-model:value="search.conditon.fileType"
+                style="width: 10rem"
+                clearable
+                filterable
+                :options="fileTypeOption"
+                placeholder="类型"
+                @update:value="getListByCondition(1)"
+              />
               <n-input
                 v-model:value="search.conditon.name"
                 clearable
@@ -83,6 +94,16 @@
                 模糊搜索
               </n-button>
             </n-input-group>
+          </n-layout-content>
+          <n-layout-content content-style="padding: 0.5rem 1rem 1rem 1rem;">
+            <n-select
+              v-model:value="search.conditon.catalog"
+              clearable
+              filterable
+              :options="catalogOption"
+              placeholder="文件目录"
+              @update:value="getListByCondition(1)"
+            />
           </n-layout-content>
           <n-layout-content
             v-if="search.history.length > 0"
@@ -113,30 +134,6 @@
             >
               清除历史
             </n-gradient-text>
-          </n-layout-content>
-          <n-layout-content content-style="padding: 1rem;text-align: center;">
-            <n-grid :x-gap="12" :y-gap="8" :cols="2">
-              <n-grid-item>
-                <n-select
-                  v-model:value="search.conditon.fileType"
-                  clearable
-                  filterable
-                  :options="fileTypeOption"
-                  placeholder="文件类型"
-                  @update:value="getListByCondition(1)"
-                />
-              </n-grid-item>
-              <n-grid-item>
-                <n-select
-                  v-model:value="search.conditon.catalog"
-                  clearable
-                  filterable
-                  :options="catalogOption"
-                  placeholder="文件目录"
-                  @update:value="getListByCondition(1)"
-                />
-              </n-grid-item>
-            </n-grid>
           </n-layout-content>
           <n-layout-content content-style="padding: 1rem;">
             <n-spin :show="search.loading" size="large">
@@ -488,8 +485,8 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    fileType: '.mkv',
-    // fileType: null,
+    // fileType: '.mkv',
+    fileType: null,
     catalog: null,
     page: 1,
     rows: 20,

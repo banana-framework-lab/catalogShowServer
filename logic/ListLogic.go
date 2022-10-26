@@ -5,6 +5,7 @@ import (
 	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/library"
 	"github.com/banana-framework-lab/catalogShowServer/param"
+	"sort"
 	"strings"
 )
 
@@ -13,16 +14,37 @@ type ListLogic struct{}
 func (ListLogic) GetFiletypeOption() body.FileTypeOptionList {
 	var result body.FileTypeOptionList
 	result = body.FileTypeOptionList{}
-	for _, ft := range library.GetContainer().GetFile().SearchOption.FileTypeList {
+
+	var valueSort []string
+	valueSort = []string{}
+
+	for _, value := range library.GetContainer().GetFile().SearchOption.FileTypeList {
+		valueSort = append(valueSort, value)
+	}
+
+	sort.Strings(valueSort)
+
+	for _, ft := range valueSort {
 		result = append(result, body.FileTypeOption{Label: ft, Value: ft, Children: body.FileTypeOptionList{}})
 	}
+
 	return result
 }
 
 func (ListLogic) GetCatalogOption() body.CatalogOptionList {
 	var result body.CatalogOptionList
 	result = body.CatalogOptionList{}
-	for _, ft := range library.GetContainer().GetFile().SearchOption.CatalogList {
+
+	var valueSort []string
+	valueSort = []string{}
+
+	for _, value := range library.GetContainer().GetFile().SearchOption.CatalogList {
+		valueSort = append(valueSort, value)
+	}
+
+	sort.Strings(valueSort)
+
+	for _, ft := range valueSort {
 		result = append(result, body.CatalogOption{Label: ft, Value: ft, Children: body.CatalogOptionList{}})
 	}
 	return result
