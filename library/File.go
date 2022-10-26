@@ -42,6 +42,7 @@ var openWithMap = map[string]string{
 	".mpeg": "video",
 	".mpg":  "video",
 	".m4v":  "video",
+	".mkv":  "video",
 	".mov":  "video",
 	".wmv":  "video",
 	".asx":  "video",

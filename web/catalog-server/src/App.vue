@@ -64,7 +64,6 @@
           </n-layout-header>
           <n-layout-content content-style="padding: 1rem;text-align: center;">
             <n-input-group>
-              <n-button type="primary"> 搜索 </n-button>
               <n-input
                 v-model:value="search.conditon.name"
                 clearable
@@ -80,7 +79,7 @@
                 @keyup.enter="searchFunction()"
                 @clear="search.conditon.placeholder = '输入文件名字'"
               />
-              <n-button type="primary" ghost @click="searchFunction()">
+              <n-button strong type="primary" ghost @click="searchFunction()">
                 模糊搜索
               </n-button>
             </n-input-group>
@@ -170,58 +169,62 @@
                     >
                       <n-card :key="index">
                         <template #cover>
-                          <div
-                            v-if="item.open_width === 'image'"
-                            style="
-                              display: flex;
-                              justify-content: center;
-                              align-items: center;
-                            "
-                          >
-                            <n-image
-                              style="height: 16.8rem"
-                              object-fit="contain"
-                              lazy
-                              :src="baseUrl + item.url"
-                            />
+                          <div v-if="item.open_width === 'image'">
+                            <div
+                              style="
+                                display: flex;
+                                justify-content: center;
+                                height: 16.8rem;
+                              "
+                            >
+                              <n-image
+                                object-fit="contain"
+                                lazy
+                                :src="baseUrl + item.url"
+                              />
+                            </div>
                           </div>
-                          <div
-                            v-if="item.open_width === 'video'"
-                            style="height: 16.8rem"
-                          >
-                            <div style="width: 100%">
-                              <Player controls theme="dark">
+                          <div v-if="item.open_width === 'video'">
+                            <div
+                              style="
+                                height: 16.8rem;
+                                display: flex !important;
+                                align-items: center;
+                              "
+                            >
+                              <Player controls style="width: 100%">
                                 <Video>
                                   <source :data-src="baseUrl + item.url" />
                                 </Video>
                               </Player>
                             </div>
                           </div>
-                          <div
-                            v-if="item.open_width === 'audio'"
-                            style="
-                              height: 16.8rem;
-                              display: flex;
-                              flex-flow: column;
-                              align-items: center;
-                              justify-content: center;
-                            "
-                          >
-                            <div>
-                              <n-icon size="155" color="#63e2b7">
-                                <MusicVideoOutlined />
-                              </n-icon>
-                            </div>
-                            <div style="width: 100%">
-                              <Player autoplay loop>
-                                <DefaultUi></DefaultUi>
-                                <Audio
-                                  :media-title="item.name"
-                                  cross-origin="anonymous"
-                                >
-                                  <source :data-src="baseUrl + item.url" />
-                                </Audio>
-                              </Player>
+                          <div v-if="item.open_width === 'audio'">
+                            <div
+                              style="
+                                height: 16.8rem;
+                                display: flex;
+                                flex-flow: column;
+                                align-items: center;
+                                justify-content: center;
+                              "
+                            >
+                              <div>
+                                <n-icon size="155" color="#63e2b7">
+                                  <MusicVideoOutlined />
+                                </n-icon>
+                              </div>
+                              <div style="width: 100%">
+                                <Player loop>
+                                  <DefaultUi></DefaultUi>
+                                  <Audio
+                                    :media-title="item.name"
+                                    cross-origin="anonymous"
+                                  >
+                                    <source :data-src="baseUrl + item.url" />
+                                  </Audio>
+                                </Player>
+                              </div>
                             </div>
                           </div>
                         </template>
@@ -383,7 +386,7 @@
             </n-icon>
           </div>
           <div style="width: 100%">
-            <Player autoplay loop>
+            <Player loop>
               <DefaultUi></DefaultUi>
               <Audio :media-title="show.source.audio.name">
                 <source :data-src="show.source.audio.url" />
@@ -478,15 +481,15 @@ const search = reactive<{
     rows: number
   }
 }>({
-  mode: 'table',
+  mode: 'list',
   history: [],
   list: [],
   loading: false,
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    // fileType: '.mp3',
-    fileType: null,
+    fileType: '.mkv',
+    // fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
@@ -587,13 +590,6 @@ function seeOther() {
 </script>
 
 <style scoped lang="scss">
-:deep() {
-  .vjs-paused .vjs-big-play-button,
-  .vjs-paused .vjs-has-started .vjs-big-play-button {
-    display: block !important;
-  }
-}
-
 .modal-pic {
   :deep() {
     img {
