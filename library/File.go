@@ -151,7 +151,20 @@ func (f *File) catalogRecurrence(src string) []int {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	values := req.URL.Query()
-	file, err := os.Open(filepath.Join(rootSrc, values.Get("file")))
+
+	fileUrl := values.Get("file")
+
+	if fileUrl == "" {
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if strings.Contains(fileUrl, "../") {
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	file, err := os.Open(filepath.Join(rootSrc, fileUrl))
 	if err != nil {
 		fmt.Printf("%v \n", err)
 	}
