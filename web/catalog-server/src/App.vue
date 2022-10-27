@@ -390,23 +390,20 @@
       >
         <template #header>
           <n-ellipsis expand-trigger="click" line-clamp="1" :tooltip="false">
-            {{ show.source.pic.name }}
+            {{ show.modal.name }}
           </n-ellipsis>
         </template>
-        <n-scrollbar
-          v-if="show.modal.type === 'pic'"
-          style="max-height: calc(100vh - 7rem)"
-          trigger="none"
-        >
+        <n-scrollbar style="max-height: calc(100vh - 8rem)" trigger="none">
           <n-image
+            v-if="show.modal.type === 'pic'"
             class="modal-pic"
             object-fit="scale-down"
             :src="show.source.pic.url"
           />
-        </n-scrollbar>
-        <n-scrollbar v-if="show.modal.type === 'video'" trigger="none">
-          <div style="text-align: center">
-            <Player style="--vm-player-theme: #63e2b7">
+          <div v-if="show.modal.type === 'video'" style="text-align: center">
+            <Player
+              style="--vm-player-theme: #63e2b7; height: calc(100vh - 105rem)"
+            >
               <Video>
                 <source :data-src="show.source.video.url" />
               </Video>
@@ -417,22 +414,22 @@
               />
             </Player>
           </div>
+          <div v-if="show.modal.type === 'audio'" class="modal-audio">
+            <div>
+              <n-icon size="155" color="#63e2b7">
+                <MusicVideoOutlined />
+              </n-icon>
+            </div>
+            <div style="width: 100%">
+              <Player loop>
+                <DefaultUi />
+                <Audio :media-title="show.source.audio.name">
+                  <source :data-src="show.source.audio.url" />
+                </Audio>
+              </Player>
+            </div>
+          </div>
         </n-scrollbar>
-        <div v-if="show.modal.type === 'audio'" class="modal-audio">
-          <div>
-            <n-icon size="155" color="#63e2b7">
-              <MusicVideoOutlined />
-            </n-icon>
-          </div>
-          <div style="width: 100%">
-            <Player loop>
-              <DefaultUi />
-              <Audio :media-title="show.source.audio.name">
-                <source :data-src="show.source.audio.url" />
-              </Audio>
-            </Player>
-          </div>
-        </div>
       </n-modal>
     </n-config-provider>
   </div>
@@ -469,6 +466,7 @@ const show = reactive<{
   modal: {
     show: boolean
     type: string
+    name: string
   }
   source: {
     pic: { name: string; url: string }
@@ -479,6 +477,7 @@ const show = reactive<{
   modal: {
     show: false,
     type: '',
+    name: '',
   },
   source: {
     pic: { name: '', url: '' },
@@ -490,6 +489,7 @@ const show = reactive<{
 function showModal(item: FileInfo) {
   var name = item.name
   var url = baseUrl + item.url
+  show.modal.name = name
   switch (item.open_width) {
     case 'image':
       show.source.pic = { name, url }
@@ -522,16 +522,16 @@ const search = reactive<{
     rows: number
   }
 }>({
-  // mode: 'table',
-  mode: 'list',
+  mode: 'table',
+  // mode: 'list',
   history: [],
   list: [],
   loading: false,
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    fileType: '.mkv',
-    // fileType: null,
+    // fileType: '.mkv',
+    fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
