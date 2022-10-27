@@ -71,8 +71,6 @@ func (ctn *Container) ShowStartText() {
 	fmt.Println("                  ╔═╝║")
 	fmt.Println("                  ╚══╝")
 	fmt.Println("")
-	fmt.Println("CatalogShowServer is reading the file list")
-	fmt.Println("")
 }
 
 func (ctn *Container) ShowReadyText() {
@@ -92,4 +90,5 @@ func (ctn *Container) ShowReadyText() {
 			}
 		}
 	}
+	fmt.Println("")
 }

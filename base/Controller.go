@@ -8,5 +8,6 @@ import (
 func InitController() {
 	library.GetContainer().GetRoute().SetController(
 		controller.ListController{},
+		controller.SystemController{},
 	)
 }

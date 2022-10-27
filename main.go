@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/base"
 	"github.com/banana-framework-lab/catalogShowServer/library"
 	"log"
@@ -21,5 +22,10 @@ func main() {
 	}
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("ListenAndServe: ", err.Error())
+	}
+
+	_, err := fmt.Scanf("h")
+	if err != nil {
+		return
 	}
 }

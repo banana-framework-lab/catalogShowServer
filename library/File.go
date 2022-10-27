@@ -51,7 +51,13 @@ var openWithMap = map[string]string{
 	".ogg":  "audio",
 }
 
-func (f *File) Init() {
+func (f *File) init() {
+	fmt.Println("CatalogShowServer is reading the file list")
+	fmt.Println("")
+
+	f.FileList = []param.FileInfo{}
+	f.SearchOption.FileTypeList = []string{}
+	f.SearchOption.CatalogList = []string{}
 	f.SearchMap.FileTypeMap = map[string][]int{}
 	f.SearchMap.CatalogMap = map[string][]int{}
 
@@ -66,6 +72,17 @@ func (f *File) Init() {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
 
+	fmt.Println("The catalogShowServer file has been read")
+	fmt.Println("")
+}
+
+func (f *File) ReInit() bool {
+	f.init()
+	return true
+}
+
+func (f *File) Init() {
+	f.init()
 	http.Handle("/file/", f)
 }
 

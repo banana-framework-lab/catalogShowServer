@@ -43,22 +43,53 @@
                   justify-content: flex-end;
                 "
               >
-                <n-icon
+                <n-button
+                  quaternary
+                  circle
+                  type="primary"
+                  @click="reloadFile()"
+                >
+                  <template #icon>
+                    <n-icon
+                      :component="RefreshCircleOutline"
+                      size="1.5rem"
+                      :depth="1"
+                      color="#7fe7c4"
+                    />
+                  </template>
+                </n-button>
+                <n-button
                   v-if="search.mode === 'table'"
-                  :component="AppstoreOutlined"
-                  size="1.5rem"
-                  :depth="1"
-                  color="#7fe7c4"
+                  quaternary
+                  circle
+                  type="primary"
                   @click="search.mode = 'list'"
-                />
-                <n-icon
+                >
+                  <template #icon>
+                    <n-icon
+                      :component="AppstoreOutlined"
+                      size="1.5rem"
+                      :depth="1"
+                      color="#7fe7c4"
+                    />
+                  </template>
+                </n-button>
+                <n-button
                   v-if="search.mode === 'list'"
-                  :component="AlignLeftOutlined"
-                  size="1.5rem"
-                  :depth="1"
-                  color="#7fe7c4"
+                  quaternary
+                  circle
+                  type="primary"
                   @click="search.mode = 'table'"
-                />
+                >
+                  <template #icon>
+                    <n-icon
+                      :component="AlignLeftOutlined"
+                      size="1.5rem"
+                      :depth="1"
+                      color="#7fe7c4"
+                    />
+                  </template>
+                </n-button>
               </n-grid-item>
             </n-grid>
           </n-layout-header>
@@ -68,7 +99,7 @@
             <n-input-group>
               <n-select
                 v-model:value="search.conditon.fileType"
-                style="width: 10rem"
+                style="width: 13rem"
                 clearable
                 filterable
                 :options="fileTypeOption"
@@ -189,7 +220,14 @@
                                 align-items: center;
                               "
                             >
-                              <Player controls style="width: 100%">
+                              <Player
+                                style="width: 100%; --vm-player-theme: #63e2b7"
+                              >
+                                <DefaultUi
+                                  :active-duration="10"
+                                  :wait-for-playback-start="true"
+                                  :hide-on-mouse-leave="true"
+                                />
                                 <Video>
                                   <source :data-src="baseUrl + item.url" />
                                 </Video>
@@ -212,8 +250,8 @@
                                 </n-icon>
                               </div>
                               <div style="width: 100%">
-                                <Player loop>
-                                  <DefaultUi></DefaultUi>
+                                <Player loop style="--vm-player-theme: #63e2b7">
+                                  <DefaultUi />
                                   <Audio
                                     :media-title="item.name"
                                     cross-origin="anonymous"
@@ -372,7 +410,11 @@
               <Video>
                 <source :data-src="show.source.video.url" />
               </Video>
-              <DefaultUi />
+              <DefaultUi
+                :active-duration="10"
+                :wait-for-playback-start="true"
+                :hide-on-mouse-leave="true"
+              />
             </Player>
           </div>
         </n-scrollbar>
@@ -384,7 +426,7 @@
           </div>
           <div style="width: 100%">
             <Player loop>
-              <DefaultUi></DefaultUi>
+              <DefaultUi />
               <Audio :media-title="show.source.audio.name">
                 <source :data-src="show.source.audio.url" />
               </Audio>
@@ -401,11 +443,13 @@ export default { name: 'App' }
 </script>
 <script setup lang="ts">
 import { IosAirplane } from '@vicons/ionicons4'
+import { RefreshCircleOutline } from '@vicons/ionicons5'
 import { Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
 import { MusicVideoOutlined } from '@vicons/material'
 import { Eye } from '@vicons/fa'
 import { GetListByCondition, FileInfo } from '@/api/list'
+import { ReloadFile } from '@/api/system'
 import {
   GetFiletypeOption,
   FileTypeOption,
@@ -478,6 +522,7 @@ const search = reactive<{
     rows: number
   }
 }>({
+  // mode: 'table',
   mode: 'list',
   history: [],
   list: [],
@@ -485,8 +530,8 @@ const search = reactive<{
   total: 0,
   conditon: {
     placeholder: '输入文件名字',
-    // fileType: '.mkv',
-    fileType: null,
+    fileType: '.mkv',
+    // fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
@@ -583,6 +628,17 @@ function seeOther() {
   search.conditon.catalog = null
   search.conditon.fileType = null
   getListByCondition(1)
+}
+
+function reloadFile() {
+  new ReloadFile()
+    .request()
+    .then((res) => {
+      getListByCondition()
+    })
+    .finally(() => {
+      search.loading = false
+    })
 }
 </script>
 
