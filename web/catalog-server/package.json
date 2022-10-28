@@ -44,6 +44,7 @@
     "vite": "^3.1.0",
     "vite-plugin-compression": "^0.5.1",
     "vue": "^3.2.41",
-    "vue-tsc": "^0.40.13"
+    "vue-tsc": "^0.40.13",
+    "xgplayer": "^2.32.1"
   }
 }

@@ -51,7 +51,7 @@ var openWithMap = map[string]string{
 	".ogg":  "audio",
 }
 
-func (f *File) init() {
+func (f *File) _init() {
 	fmt.Println("CatalogShowServer is reading the file list")
 	fmt.Println("")
 
@@ -77,12 +77,12 @@ func (f *File) init() {
 }
 
 func (f *File) ReInit() bool {
-	f.init()
+	f._init()
 	return true
 }
 
 func (f *File) Init() {
-	f.init()
+	f._init()
 	http.Handle("/file/", f)
 }
 

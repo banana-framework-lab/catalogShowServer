@@ -63,12 +63,7 @@
                   quaternary
                   circle
                   type="primary"
-                  @click="
-                    () => {
-                      search.mode = 'list'
-                      changShowMode()
-                    }
-                  "
+                  @click="search.mode = 'list'"
                 >
                   <template #icon>
                     <n-icon
@@ -84,12 +79,7 @@
                   quaternary
                   circle
                   type="primary"
-                  @click="
-                    () => {
-                      search.mode = 'table'
-                      changShowMode()
-                    }
-                  "
+                  @click="search.mode = 'table'"
                 >
                   <template #icon>
                     <n-icon
@@ -230,7 +220,7 @@
                                 align-items: center;
                               "
                             >
-                              <!-- <Player
+                              <Player
                                 style="width: 100%; --vm-player-theme: #63e2b7"
                               >
                                 <DefaultUi
@@ -241,8 +231,7 @@
                                 <Video>
                                   <source :data-src="baseUrl + item.url" />
                                 </Video>
-                              </Player> -->
-                              <div :id="'video' + item.index" />
+                              </Player>
                             </div>
                           </div>
                           <div v-if="item.open_width === 'audio'">
@@ -465,10 +454,9 @@ import {
   CatalogOption,
 } from '@/api/option'
 import { darkTheme, zhCN, dateZhCN, NTable, NGrid } from 'naive-ui'
-import { reactive, ref, onMounted, nextTick } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
 import { Player, Video, Audio, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
-import xgPlayer from 'xgplayer'
 
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 const listShowRef = ref<InstanceType<typeof NGrid>>()
@@ -607,41 +595,6 @@ function getCatalogOption() {
   })
 }
 getCatalogOption()
-
-function changShowMode() {
-  nextTick(() => {
-    search.list.forEach((e) => {
-      if (e.open_width === 'video') {
-        setPlayer(e.index, e.url)
-      }
-    })
-  })
-}
-
-function setPlayer(index: number, url: string) {
-  new xgPlayer({
-    id: 'video' + index,
-    url: baseUrl + url,
-    autoplay: false,
-    volume: 0.3,
-    playsinline: true,
-    thumbnail: {
-      pic_num: 44,
-      width: 160,
-      height: 90,
-      col: 10,
-      row: 10,
-      urls: [
-        '//lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo-thumbnail.jpg',
-      ],
-    },
-    fluid: true,
-    loop: true,
-    videoInit: true,
-    playbackRate: [0.5, 0.75, 1, 1.5, 2],
-    rotateFullscreen: true,
-  })
-}
 
 function getListByCondition(page = 1) {
   search.loading = true
