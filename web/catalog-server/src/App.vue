@@ -634,6 +634,8 @@ function reloadFile() {
   new ReloadFile()
     .request()
     .then((res) => {
+      getFiletypeOption()
+      getCatalogOption()
       getListByCondition()
     })
     .finally(() => {
