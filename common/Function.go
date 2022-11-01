@@ -71,12 +71,22 @@ func GetSliceIntersect[T comparable](a []T, b []T) []T {
 }
 
 func GetCurrentPath() (string, error) {
-	fmt.Printf("%v\n", os.Args)
-	file, err := exec.LookPath(os.Args[0])
-
-	if err != nil {
-		return "", err
+	var file string
+	var lookPathErr error
+	if filepath.IsAbs(os.Args[0]) {
+		file, lookPathErr = exec.LookPath(os.Args[0])
+		if lookPathErr != nil {
+			fmt.Printf("%v", lookPathErr)
+			return "", lookPathErr
+		}
+	} else {
+		file, lookPathErr = exec.LookPath("./" + os.Args[0])
+		if lookPathErr != nil {
+			fmt.Printf("%v", lookPathErr)
+			return "", lookPathErr
+		}
 	}
+
 	path, err := filepath.Abs(file)
 	if err != nil {
 		return "", err

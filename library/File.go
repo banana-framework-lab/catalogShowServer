@@ -72,8 +72,14 @@ func (f *File) _init() {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
 
+	f._frame()
+
 	fmt.Println("The catalogShowServer file has been read")
 	fmt.Println("")
+}
+
+func (f *File) _frame() {
+
 }
 
 func (f *File) ReInit() bool {

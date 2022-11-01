@@ -523,6 +523,7 @@ const search = reactive<{
   mode: string
   history: string[]
   list: FileInfo[]
+  player_list: xgPlayer[]
   total: number
   loading: boolean
   conditon: {
@@ -538,6 +539,7 @@ const search = reactive<{
   // mode: 'list',
   history: [],
   list: [],
+  player_list: [],
   loading: false,
   total: 0,
   conditon: {
@@ -609,38 +611,55 @@ function getCatalogOption() {
 getCatalogOption()
 
 function changShowMode() {
-  nextTick(() => {
-    search.list.forEach((e) => {
-      if (e.open_width === 'video') {
-        setPlayer(e.index, e.url)
-      }
+  if (search.mode === 'list') {
+    nextTick(() => {
+      setAllPlayer()
     })
+  } else {
+    deleteAllPlayer()
+  }
+}
+
+function deleteAllPlayer() {
+  search.player_list.forEach((ele) => {
+    ele.destroy()
+  })
+  search.player_list = []
+}
+
+function setAllPlayer() {
+  search.list.forEach((e) => {
+    if (e.open_width === 'video') {
+      setPlayer(e.index, e.url)
+    }
   })
 }
 
 function setPlayer(index: number, url: string) {
-  new xgPlayer({
-    id: 'video' + index,
-    url: baseUrl + url,
-    autoplay: false,
-    volume: 0.3,
-    playsinline: true,
-    thumbnail: {
-      pic_num: 44,
-      width: 160,
-      height: 90,
-      col: 10,
-      row: 10,
-      urls: [
-        '//lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo-thumbnail.jpg',
-      ],
-    },
-    fluid: true,
-    loop: true,
-    videoInit: true,
-    playbackRate: [0.5, 0.75, 1, 1.5, 2],
-    rotateFullscreen: true,
-  })
+  search.player_list.push(
+    new xgPlayer({
+      id: 'video' + index,
+      url: baseUrl + url,
+      autoplay: false,
+      volume: 0.3,
+      playsinline: true,
+      thumbnail: {
+        pic_num: 44,
+        width: 160,
+        height: 90,
+        col: 10,
+        row: 10,
+        urls: [
+          '//lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo-thumbnail.jpg',
+        ],
+      },
+      fluid: true,
+      loop: true,
+      videoInit: true,
+      playbackRate: [0.5, 0.75, 1, 1.5, 2],
+      download: true,
+    })
+  )
 }
 
 function getListByCondition(page = 1) {
@@ -662,6 +681,12 @@ function getListByCondition(page = 1) {
     .then((res) => {
       listShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
       tableShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
+      if (search.mode === 'list') {
+        deleteAllPlayer()
+        nextTick(() => {
+          setAllPlayer()
+        })
+      }
       search.list = res.data.list
       search.total = res.data.total
     })
