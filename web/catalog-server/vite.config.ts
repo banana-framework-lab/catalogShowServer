@@ -15,6 +15,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
     build: {
       outDir: '../dist',
       assetsDir: 'static',
+      emptyOutDir: true,
     },
     server: {
       host: '0.0.0.0',
