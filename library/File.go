@@ -2,6 +2,7 @@ package library
 
 import (
 	"fmt"
+	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"net/http"
 	"os"
@@ -52,8 +53,7 @@ var openWithMap = map[string]string{
 }
 
 func (f *File) _init() {
-	fmt.Println("CatalogShowServer is reading the file list")
-	fmt.Println("")
+	common.PrintfClean("CatalogShowServer is reading the file list")
 
 	f.FileList = []param.FileInfo{}
 	f.SearchOption.FileTypeList = []string{}
@@ -74,8 +74,7 @@ func (f *File) _init() {
 
 	f._frame()
 
-	fmt.Println("The catalogShowServer file has been read")
-	fmt.Println("")
+	common.PrintfClean("The catalogShowServer file has been read")
 }
 
 func (f *File) _frame() {

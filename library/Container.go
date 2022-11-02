@@ -74,7 +74,8 @@ func (ctn *Container) ShowStartText() {
 }
 
 func (ctn *Container) ShowReadyText() {
-	fmt.Println("CatalogShowServer Ready")
+	common.PrintfClean("CatalogShowServer Ready")
+	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
 	addrs, err := net.InterfaceAddrs()

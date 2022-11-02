@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+func PrintfClean(content string) {
+	fmt.Printf("\r%-100s", content)
+}
+
 func DecodeJson(data []byte, v interface{}) error {
 	err := json.Unmarshal(data, v)
 	if err != nil {
