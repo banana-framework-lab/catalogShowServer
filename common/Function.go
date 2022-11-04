@@ -74,6 +74,15 @@ func GetSliceIntersect[T comparable](a []T, b []T) []T {
 	return inter
 }
 
+func InSlice[T comparable](needle T, slice []T, f func(needle T, item T) bool) bool {
+	for _, item := range slice {
+		if f(needle, item) {
+			return true
+		}
+	}
+	return false
+}
+
 func GetCurrentPath() (string, error) {
 	var file string
 	var lookPathErr error

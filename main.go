@@ -14,6 +14,7 @@ func main() {
 	library.GetContainer().GetConfig().Init()
 	library.GetContainer().GetFile().Init()
 	library.GetContainer().GetRoute().Init()
+	library.GetContainer().GetUdp().Init()
 	library.GetContainer().ShowReadyText()
 
 	// server

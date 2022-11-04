@@ -1,1 +1,8 @@
-ableFileType = [".sample",".mp4",".jpg"]
+ableFileType = [".mp4", ".mp3", ".avi", ".rmvb", ".jpg", ".jpeg", ".png", ".mkv"]
+
+[web]
+port = '8088'
+
+[udp]
+port = '8080'
+isBroadcast = true

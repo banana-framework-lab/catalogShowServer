@@ -16,6 +16,10 @@ type Request struct {
 	req *http.Request
 }
 
+func (r *Request) GetReqBody() *http.Request {
+	return r.req
+}
+
 func (r *Request) GET(v interface{}) error {
 	getDataErr := common.DecodeQuery(r.req.URL.Query(), v)
 	if getDataErr != nil {

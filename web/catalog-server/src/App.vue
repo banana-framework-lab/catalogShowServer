@@ -43,53 +43,46 @@
                   justify-content: flex-end;
                 "
               >
-                <n-button
-                  quaternary
-                  circle
-                  type="primary"
-                  @click="reloadFile()"
-                >
-                  <template #icon>
-                    <n-icon
-                      :component="RefreshCircleOutline"
-                      size="1.5rem"
-                      :depth="1"
-                      color="#7fe7c4"
-                    />
+                <n-tooltip placement="bottom" trigger="hover">
+                  <template #trigger>
+                    <n-button
+                      quaternary
+                      circle
+                      type="primary"
+                      @click="reloadFile()"
+                    >
+                      <template #icon>
+                        <n-icon
+                          :component="RefreshCircleOutline"
+                          size="1.5rem"
+                          :depth="1"
+                          color="#7fe7c4"
+                        />
+                      </template>
+                    </n-button>
                   </template>
-                </n-button>
-                <n-button
-                  v-if="search.mode === 'table'"
-                  quaternary
-                  circle
-                  type="primary"
-                  @click="search.mode = 'list'"
+                  <span>刷新文件列表</span>
+                </n-tooltip>
+                <n-dropdown
+                  trigger="click"
+                  key-field="url"
+                  label-field="ip"
+                  :options="neighborOptions"
+                  :show-arrow="true"
+                  :render-icon="renderNeighborOptionsIcon"
+                  @select="() => {}"
                 >
-                  <template #icon>
-                    <n-icon
-                      :component="AppstoreOutlined"
-                      size="1.5rem"
-                      :depth="1"
-                      color="#7fe7c4"
-                    />
-                  </template>
-                </n-button>
-                <n-button
-                  v-if="search.mode === 'list'"
-                  quaternary
-                  circle
-                  type="primary"
-                  @click="search.mode = 'table'"
-                >
-                  <template #icon>
-                    <n-icon
-                      :component="AlignLeftOutlined"
-                      size="1.5rem"
-                      :depth="1"
-                      color="#7fe7c4"
-                    />
-                  </template>
-                </n-button>
+                  <n-button quaternary circle type="primary">
+                    <template #icon>
+                      <n-icon
+                        :component="Network4"
+                        size="1.5rem"
+                        :depth="1"
+                        color="#7fe7c4"
+                      />
+                    </template>
+                  </n-button>
+                </n-dropdown>
               </n-grid-item>
             </n-grid>
           </n-layout-header>
@@ -121,8 +114,43 @@
                 @keyup.enter="searchFunction()"
                 @clear="search.conditon.placeholder = '输入文件名字'"
               />
-              <n-button strong type="primary" ghost @click="searchFunction()">
-                模糊搜索
+              <n-button
+                strong
+                secondary
+                type="primary"
+                @click="searchFunction()"
+              >
+                搜索
+              </n-button>
+              <n-button
+                v-if="search.mode === 'table'"
+                secondary
+                type="primary"
+                @click="search.mode = 'list'"
+              >
+                <template #icon>
+                  <n-icon
+                    :component="AppstoreOutlined"
+                    size="1.5rem"
+                    :depth="1"
+                    color="#7fe7c4"
+                  />
+                </template>
+              </n-button>
+              <n-button
+                v-if="search.mode === 'list'"
+                secondary
+                type="primary"
+                @click="search.mode = 'table'"
+              >
+                <template #icon>
+                  <n-icon
+                    :component="AlignLeftOutlined"
+                    size="1.5rem"
+                    :depth="1"
+                    color="#7fe7c4"
+                  />
+                </template>
               </n-button>
             </n-input-group>
           </n-layout-content>
@@ -138,13 +166,13 @@
           </n-layout-content>
           <n-layout-content
             v-if="search.history.length > 0"
-            content-style="padding-left: 1rem;padding-right: 1rem;"
+            content-style="padding-left: 1rem;padding-right: 1rem;display:-webkit-flex;overflow-x:auto;padding-bottom:0.8rem"
           >
             <n-tag
               v-for="(item, index) in search.history"
               :key="index"
+              style="margin: 0 0.2rem"
               type="success"
-              style="margin: 0.2rem"
               @click="clickHistory(item)"
             >
               <n-ellipsis
@@ -155,18 +183,17 @@
                 {{ item }}
               </n-ellipsis>
             </n-tag>
-            <n-gradient-text
-              style="margin-left: 0.5rem"
-              :gradient="{
-                from: 'rgb(85, 85, 85)',
-                to: 'rgb(255, 255, 255)',
-              }"
-              @click="deleteHistory()"
-            >
-              清除历史
-            </n-gradient-text>
+            <n-tag style="margin-left: 0.2rem" @click="deleteHistory()">
+              <n-ellipsis
+                line-clamp="1"
+                :tooltip="false"
+                style="max-width: 7rem"
+              >
+                清除历史
+              </n-ellipsis>
+            </n-tag>
           </n-layout-content>
-          <n-layout-content content-style="padding: 1rem;">
+          <n-layout-content content-style="padding: 0rem 1rem 1rem 1rem;">
             <n-spin :show="search.loading" size="large">
               <template #description> 正在加载。。。 </template>
               <template #icon>
@@ -179,8 +206,8 @@
                   v-if="search.mode === 'list'"
                   :style="
                     search.history.length > 0
-                      ? 'max-height: calc(100vh - 23rem)'
-                      : 'max-height: calc(100vh - 18rem)'
+                      ? 'max-height: calc(100vh - 18.5rem)'
+                      : 'max-height: calc(100vh - 15.5rem)'
                   "
                   trigger="none"
                 >
@@ -298,8 +325,8 @@
                   <n-scrollbar
                     :style="
                       search.history.length > 0
-                        ? 'max-height: calc(100vh - 23.5rem)'
-                        : 'max-height: calc(100vh - 20.5rem)'
+                        ? 'max-height: calc(100vh - 21rem)'
+                        : 'max-height: calc(100vh - 18rem)'
                     "
                     trigger="none"
                   >
@@ -440,21 +467,22 @@ export default { name: 'App' }
 </script>
 <script setup lang="ts">
 import { IosAirplane } from '@vicons/ionicons4'
-import { RefreshCircleOutline } from '@vicons/ionicons5'
-import { Reload } from '@vicons/ionicons5'
+import { RefreshCircleOutline, Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
 import { MusicVideoOutlined } from '@vicons/material'
 import { Eye } from '@vicons/fa'
+import { Network4 } from '@vicons/carbon'
+import { UserCircle } from '@vicons/tabler'
 import { GetListByCondition, FileInfo } from '@/api/list'
-import { ReloadFile } from '@/api/system'
+import { ReloadFile, GetNeighborList, NeighborInfo } from '@/api/system'
 import {
   GetFiletypeOption,
   FileTypeOption,
   GetCatalogOption,
   CatalogOption,
 } from '@/api/option'
-import { darkTheme, zhCN, dateZhCN, NTable, NGrid } from 'naive-ui'
-import { reactive, ref, onMounted } from 'vue'
+import { darkTheme, zhCN, dateZhCN, NTable, NGrid, NIcon } from 'naive-ui'
+import { h, reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
 import { Player, Video, Audio, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
 
@@ -522,8 +550,8 @@ const search = reactive<{
     rows: number
   }
 }>({
-  mode: 'table',
-  // mode: 'list',
+  // mode: 'table',
+  mode: 'list',
   history: [],
   list: [],
   loading: false,
@@ -642,6 +670,30 @@ function reloadFile() {
       search.loading = false
     })
 }
+
+const neighborOptions = ref<NeighborInfo[]>([])
+
+function getNeighborList() {
+  new GetNeighborList()
+    .request()
+    .then((res) => {
+      neighborOptions.value = res.data.list
+    })
+    .finally(() => {
+      search.loading = false
+    })
+}
+getNeighborList()
+
+setInterval(() => {
+  getNeighborList()
+}, 60000)
+
+function renderNeighborOptionsIcon() {
+  return h(NIcon, null, {
+    default: () => h(UserCircle),
+  })
+}
 </script>
 
 <style scoped lang="scss">
@@ -655,7 +707,7 @@ function reloadFile() {
 
 .modal-audio {
   height: 16.8rem;
-  display: flex;
+  display: -webkit-flex;
   flex-flow: column;
   align-items: center;
   justify-content: center;

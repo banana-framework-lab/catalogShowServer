@@ -1,6 +1,7 @@
 package library
 
 import (
+	"fmt"
 	"github.com/pelletier/go-toml/v2"
 	"os"
 	"path/filepath"
@@ -11,10 +12,16 @@ type Config struct {
 	AbleFileTypeMap       map[string]bool
 	AbleFileTypeList      []string  `toml:"ableFileType"`
 	Web                   WebConfig `toml:"web"`
+	Udp                   UdpConfig `toml:"udp"`
 }
 
 type WebConfig struct {
 	Port string `toml:"port"`
+}
+
+type UdpConfig struct {
+	Port        string `toml:"port"`
+	IsBroadcast bool   `toml:"isBroadcast"`
 }
 
 func (cfg *Config) setAbleFileTypeMap() {
@@ -36,6 +43,7 @@ func (cfg *Config) Init() {
 	}
 
 	err = toml.Unmarshal(tomlConfig, &cfg)
+	fmt.Printf("%v", cfg)
 	if err != nil {
 		panic("配置文件赋值错误" + err.Error())
 		return

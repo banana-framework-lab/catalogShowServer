@@ -13,6 +13,7 @@ type Container struct {
 	config Config
 	file   File
 	route  Route
+	udp    Udp
 }
 
 var containerInstance *Container
@@ -58,6 +59,10 @@ func (ctn *Container) GetFile() *File {
 
 func (ctn *Container) GetRoute() *Route {
 	return &ctn.route
+}
+
+func (ctn *Container) GetUdp() *Udp {
+	return &ctn.udp
 }
 
 func (ctn *Container) ShowStartText() {

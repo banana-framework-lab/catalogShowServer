@@ -102,13 +102,15 @@ func (f *File) catalogRecurrence(src string) []int {
 	fileIndexList = []int{}
 	for _, fileInfo := range dir {
 		if fileInfo.IsDir() {
-			fileIndexList = append(fileIndexList, f.catalogRecurrence(src+eol+fileInfo.Name())...)
-			if len(fileIndexList) > 0 {
-				srcValue := strings.Replace(src, rootSrc, "", 1)
-				if srcValue == "" {
-					srcValue = "/"
+			if fileInfo.Name() != "build" {
+				fileIndexList = append(fileIndexList, f.catalogRecurrence(src+eol+fileInfo.Name())...)
+				if len(fileIndexList) > 0 {
+					srcValue := strings.Replace(src, rootSrc, "", 1)
+					if srcValue == "" {
+						srcValue = "/"
+					}
+					f.SearchMap.CatalogMap[srcValue] = fileIndexList
 				}
-				f.SearchMap.CatalogMap[srcValue] = fileIndexList
 			}
 		} else {
 			fileType := path.Ext(fileInfo.Name())
