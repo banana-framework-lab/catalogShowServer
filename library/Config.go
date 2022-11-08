@@ -20,8 +20,8 @@ type WebConfig struct {
 }
 
 type UdpConfig struct {
-	Port        string `toml:"port"`
-	IsBroadcast bool   `toml:"isBroadcast"`
+	Port       string `toml:"port"`
+	ShowStatus bool   `toml:"showStatus"`
 }
 
 func (cfg *Config) setAbleFileTypeMap() {
@@ -30,7 +30,7 @@ func (cfg *Config) setAbleFileTypeMap() {
 		cfg.AbleFileTypeMap[value] = true
 	}
 
-	for key, _ := range openWithMap {
+	for key := range openWithMap {
 		cfg.SystemAbleFileTypeMap[key] = true
 	}
 }

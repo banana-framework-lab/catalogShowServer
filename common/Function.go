@@ -41,9 +41,9 @@ func GetSliceKeyByPageRows[T any](list []T, page int, rows int) []T {
 		if len(list) <= 0 {
 			return list
 		} else if rows >= len(list) {
-			return list[0:len(list)]
+			return list[0:]
 		} else {
-			return list[(page-1)*rows : len(list)]
+			return list[(page-1)*rows:]
 		}
 	}
 }
@@ -89,13 +89,11 @@ func GetCurrentPath() (string, error) {
 	if filepath.IsAbs(os.Args[0]) {
 		file, lookPathErr = exec.LookPath(os.Args[0])
 		if lookPathErr != nil {
-			fmt.Printf("%v", lookPathErr)
 			return "", lookPathErr
 		}
 	} else {
 		file, lookPathErr = exec.LookPath("./" + os.Args[0])
 		if lookPathErr != nil {
-			fmt.Printf("%v", lookPathErr)
 			return "", lookPathErr
 		}
 	}
@@ -109,7 +107,7 @@ func GetCurrentPath() (string, error) {
 		i = strings.LastIndex(path, "\\")
 	}
 	if i < 0 {
-		return "", errors.New(`error: Can't find "/" or "\".`)
+		return "", errors.New(`error: Can't find "/" or "\"`)
 	}
-	return string(path[0 : i+1]), nil
+	return path[0 : i+1], nil
 }

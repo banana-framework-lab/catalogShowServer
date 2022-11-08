@@ -4,7 +4,9 @@ import axios, {
   AxiosRequestConfig,
   AxiosError,
 } from 'axios'
-import { useMessage } from 'naive-ui'
+import { deletToken } from '@/util/token'
+
+import router from '@/router'
 
 // create an axios instance
 const service = axios.create({
@@ -28,16 +30,21 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse) => {
     const res = response.data
-    if (res.code !== 0) {
-      useMessage().error(res.message)
-      return Promise.reject(response)
+    if (Number(res.code) !== 0) {
+      window['$message'].error(res.message)
+      if (Number(res.code) === 3) {
+        deletToken()
+        router.push('/login')
+      } else {
+        return Promise.reject(response)
+      }
     } else {
       return res
     }
   },
   (error: AxiosError) => {
     console.log('err' + error)
-    useMessage().error(error.message)
+    window['$message'].error(error.message)
     return Promise.reject(error)
   }
 )
@@ -50,20 +57,20 @@ export interface HttpResponse<T> {
 
 export abstract class Request {
   abstract url: string
-  abstract setParam(params: this['param']): this
+  abstract setParam(params: this['requestParam']): this
   public method: Method = 'GET'
-  public param: Record<string, unknown> = {}
-  public datagram!: any
+  public requestParam: Record<string, unknown> = {}
+  public responseParam!: any
 
-  public request(): Promise<HttpResponse<this['datagram']>> {
+  public request(): Promise<HttpResponse<this['responseParam']>> {
     const config: AxiosRequestConfig = {
       url: this.url,
       method: this.method,
     }
     if (this.method.toLowerCase() === 'get') {
-      config.params = { ...this.param }
+      config.params = { ...this.requestParam }
     } else {
-      config.data = { ...this.param }
+      config.data = { ...this.requestParam }
     }
     return service.request(config)
   }

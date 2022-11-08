@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
+	"github.com/banana-framework-lab/catalogShowServer/web"
+	"github.com/vearutop/statigz"
+	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -89,6 +93,7 @@ func (f *File) ReInit() bool {
 func (f *File) Init() {
 	f._init()
 	http.Handle("/file/", f)
+	http.Handle("/static/", f)
 }
 
 func (f *File) catalogRecurrence(src string) []int {
@@ -157,30 +162,57 @@ func (f *File) catalogRecurrence(src string) []int {
 }
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	values := req.URL.Query()
+	if containerInstance.udp.ShowStatus {
+		f.onRequest(rw, req)
+	} else {
+		cookie, noCookieErr := req.Cookie("catalogShowServerToken")
+		if noCookieErr != nil {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
 
-	fileUrl := values.Get("file")
-
-	if fileUrl == "" {
-		rw.WriteHeader(http.StatusNotFound)
-		return
+		if !containerInstance.user.IsExit(cookie.Value) {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+		f.onRequest(rw, req)
 	}
+}
 
-	if strings.Contains(fileUrl, "../") {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
+	if strings.HasPrefix(req.URL.Path, "/static/") {
+		subFS, err := fs.Sub(web.Dist, "dist")
+		if err != nil {
+			log.Fatal(err)
+		}
+		statigz.FileServer(subFS.(fs.ReadDirFS)).ServeHTTP(rw, req)
+	} else {
+		values := req.URL.Query()
 
-	file, err := os.Open(filepath.Join(rootSrc, fileUrl))
-	if err != nil {
-		fmt.Printf("%v \n", err)
-	}
-	defer func(file *os.File) {
-		err := file.Close()
+		fileUrl := values.Get("file")
+
+		if fileUrl == "" {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		if strings.Contains(fileUrl, "../") {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		file, err := os.Open(filepath.Join(rootSrc, fileUrl))
 		if err != nil {
 			fmt.Printf("%v \n", err)
 		}
-	}(file)
 
-	http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				fmt.Printf("%v \n", err)
+			}
+		}(file)
+
+		http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
+	}
 }

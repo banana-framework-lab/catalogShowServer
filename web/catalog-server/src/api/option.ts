@@ -8,11 +8,11 @@ export interface FileTypeOption {
 }
 export class GetFiletypeOption extends Request {
   public url = '/list/getFiletypeOption'
-  public declare datagram: {
+  public declare responseParam: {
     options: FileTypeOption[]
   }
-  public setParam(param: this['param']) {
-    this.param = param
+  public setParam(param: this['requestParam']) {
+    this.requestParam = param
     return this
   }
 }
@@ -25,11 +25,11 @@ export interface CatalogOption {
 
 export class GetCatalogOption extends Request {
   public url = '/list/getCatalogOption'
-  public declare datagram: {
+  public declare responseParam: {
     options: CatalogOption[]
   }
-  public setParam(param: this['param']) {
-    this.param = param
+  public setParam(param: this['requestParam']) {
+    this.requestParam = param
     return this
   }
 }

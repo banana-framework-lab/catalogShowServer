@@ -1,6 +1,7 @@
 package bin
 
-import "embed"
-
-//go:embed ffmpeg/windows
-var WindowsFFMPEG embed.FS
+//
+//import "embed"
+//
+////go:embed ffmpeg/windows
+//var _ embed.FS

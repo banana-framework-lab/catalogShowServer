@@ -11,6 +11,7 @@ import (
 
 type Container struct {
 	config Config
+	user   User
 	file   File
 	route  Route
 	udp    Udp
@@ -18,7 +19,11 @@ type Container struct {
 
 var containerInstance *Container
 
-var rootSrc string = ""
+var rootSrc = ""
+
+func GetRootSrc() string {
+	return rootSrc
+}
 
 func GetContainer() *Container {
 	if containerInstance == nil {
@@ -39,8 +44,16 @@ func GetContainer() *Container {
 					FileList: []param.FileInfo{},
 				},
 				route: Route{
-					rMap:     map[string]param.Router{},
+					rMap:     map[string]*param.Router{},
 					ctrlList: []abstract.AbsController{},
+				},
+				udp: Udp{
+					IpList:       []string{},
+					IpInfoList:   []IpInfo{},
+					NeighborList: map[string][]Neighbor{},
+				},
+				user: User{
+					tokenMap: map[string]int64{},
 				},
 			}
 		}
@@ -49,8 +62,23 @@ func GetContainer() *Container {
 	return containerInstance
 }
 
+func Init() {
+	GetContainer()
+	containerInstance.ShowStartText()
+	containerInstance.GetConfig().Init()
+	containerInstance.GetFile().Init()
+	containerInstance.GetRoute().Init()
+	containerInstance.GetUdp().Init()
+	containerInstance.GetUser().Init()
+	containerInstance.ShowReadyText()
+}
+
 func (ctn *Container) GetConfig() *Config {
 	return &ctn.config
+}
+
+func (ctn *Container) GetUser() *User {
+	return &ctn.user
 }
 
 func (ctn *Container) GetFile() *File {
@@ -83,16 +111,16 @@ func (ctn *Container) ShowReadyText() {
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
-	addrs, err := net.InterfaceAddrs()
+	address, err := net.InterfaceAddrs()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	for _, address := range addrs {
+	for _, address := range address {
 		// 检查ip地址判断是否回环地址
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				fmt.Println("Network => http://" + ipnet.IP.String() + ":" + ctn.config.Web.Port + "/")
+		if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To4() != nil {
+				fmt.Println("Network => http://" + ipNet.IP.String() + ":" + ctn.config.Web.Port + "/")
 			}
 		}
 	}

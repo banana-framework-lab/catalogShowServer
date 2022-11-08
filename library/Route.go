@@ -6,7 +6,6 @@ import (
 	"github.com/banana-framework-lab/catalogShowServer/abstract"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"github.com/banana-framework-lab/catalogShowServer/web"
-	"github.com/vearutop/statigz"
 	"io"
 	"io/fs"
 	"log"
@@ -15,31 +14,42 @@ import (
 )
 
 type Route struct {
-	rMap     map[string]param.Router
+	rMap     map[string]*param.Router
 	ctrlList []abstract.AbsController
 }
 
 func (rt *Route) SetController(cList ...abstract.AbsController) {
-	for _, c := range cList {
-		rt.ctrlList = append(rt.ctrlList, c)
+	for _, controller := range cList {
+		rt.ctrlList = append(rt.ctrlList, controller)
+		for _, router := range controller.RouterList() {
+			rt.rMap[router.Url] = router
+		}
 	}
 }
 
-func (rt *Route) SetRouter(url string, router param.Router) {
-	rt.rMap[url] = router
+func (rt *Route) SetMiddleware(mdType string, middlewareList ...func(request param.Request) *param.AppError) {
+	for _, middleware := range middlewareList {
+		for _, router := range rt.rMap {
+			if mdType == param.MiddlewareTypeBefore {
+				if !router.Middleware.Common.BeforeDisable {
+					router.Middleware.Common.Before = append(router.Middleware.Common.Before, middleware)
+				}
+			} else {
+				if !router.Middleware.Common.AfterDisable {
+					router.Middleware.Common.After = append(router.Middleware.Common.After, middleware)
+				}
+			}
+		}
+	}
 }
 
-func (rt *Route) getRouter(url string) (param.Router, error) {
+func (rt *Route) getRouter(url string) (*param.Router, error) {
 	url = strings.TrimRight(url, "/")
 	if router, ok := rt.rMap[url]; ok {
 		return router, nil
 	} else {
-		return param.Router{}, errors.New("找不到路由")
+		return &param.Router{}, errors.New("找不到路由")
 	}
-}
-
-func (rt *Route) getRMap() map[string]param.Router {
-	return rt.rMap
 }
 
 func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -62,7 +72,7 @@ func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rsp := rt.onRequest(req)
 		err := rsp.Send(rw)
 		if err != nil {
-			return
+			fmt.Printf("%v", err)
 		}
 	}
 }
@@ -73,40 +83,22 @@ func (rt *Route) onRequest(req *http.Request) param.Response {
 		return param.Response{
 			Code:    param.RequestParamError,
 			Message: err.Error(),
-			Data:    map[string]string{},
+			Data:    struct{}{},
 		}
 	} else {
 		request := param.NewRequest(req)
-		//if err != nil {
-		//	return param.Response{
-		//		Code:    param.REQUEST_PARAM_ERROR,
-		//		Message: err.Error(),
-		//		Data:    map[string]string{},
-		//	}
-		//}
+		middleErr := router.HandleBeforeMiddleware(request)
+		if middleErr != nil {
+			return param.Response{
+				Code:    middleErr.Code(),
+				Message: middleErr.Error(),
+				Data:    struct{}{},
+			}
+		}
 		return router.Function(request)
 	}
 }
 
 func (rt *Route) Init() {
-
-	rt.rMap = map[string]param.Router{}
-
-	rt.initRouteMap()
-
-	subFS, err := fs.Sub(web.Dist, "dist")
-	if err != nil {
-		log.Fatal(err)
-	}
-	http.Handle("/static/", statigz.FileServer(subFS.(fs.ReadDirFS)))
-	http.Handle("/favicon.ico", statigz.FileServer(subFS.(fs.ReadDirFS)))
 	http.Handle("/", rt)
-}
-
-func (rt *Route) initRouteMap() {
-	for _, c := range rt.ctrlList {
-		for _, r := range c.RouterList() {
-			rt.SetRouter(r.Url, r)
-		}
-	}
 }

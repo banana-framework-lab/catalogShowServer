@@ -11,12 +11,18 @@ import (
 )
 
 type Udp struct {
-	IpList       []string
-	IpInfoList   []IpInfo
-	LocalAddr    net.UDPAddr
-	RemoteAddr   net.UDPAddr
-	IsBroadCast  bool
-	NeighborList map[string][]Neighbor
+	IpList        []string
+	IpInfoList    []IpInfo
+	BroadcastBody BroadcastBody
+	ShowStatus    bool
+	NeighborList  map[string][]Neighbor
+}
+
+type BroadcastBody struct {
+	Port       int
+	LocalAddr  net.UDPAddr
+	RemoteAddr net.UDPAddr
+	Connect    *net.UDPConn
 }
 
 type Neighbor struct {
@@ -59,8 +65,8 @@ func (ii *IpInfo) InSameNetwork(otherIp string) bool {
 }
 
 type BroadcastMessage struct {
-	IsBroadCast bool   `json:"is_broad_cast"`
-	Port        string `json:"port"`
+	ShowStatus bool   `json:"show_status"`
+	Port       string `json:"port"`
 }
 
 func (u *Udp) getBroadcastIp(ip string, netMask string) string {
@@ -87,10 +93,7 @@ func (u *Udp) getBroadcastIp(ip string, netMask string) string {
 }
 
 func (u *Udp) Init() {
-	u.IpList = []string{}
-	u.IpInfoList = []IpInfo{}
-	u.NeighborList = map[string][]Neighbor{}
-	u.IsBroadCast = containerInstance.config.Udp.IsBroadcast
+	u.ShowStatus = containerInstance.config.Udp.ShowStatus
 	ipList, err := net.InterfaceAddrs()
 	if err != nil {
 		panic(err.Error())
@@ -112,52 +115,61 @@ func (u *Udp) Init() {
 		}
 	}
 
-	go u.receive()
-	go u.broadcast()
-}
-
-func (u *Udp) broadcast() {
-	port, sErr := strconv.Atoi(containerInstance.config.Udp.Port)
+	var sErr error
+	u.BroadcastBody.Port, sErr = strconv.Atoi(containerInstance.config.Udp.Port)
 	if sErr != nil {
 		panic(sErr.Error())
 	}
 
-	localAddr := net.UDPAddr{
+	u.BroadcastBody.LocalAddr = net.UDPAddr{
 		IP:   net.IPv4(0, 0, 0, 0),
-		Port: port,
+		Port: u.BroadcastBody.Port,
 	}
 
-	remoteAddr := net.UDPAddr{
+	u.BroadcastBody.RemoteAddr = net.UDPAddr{
 		IP:   net.ParseIP(u.IpInfoList[0].BroadcastIp),
-		Port: port,
+		Port: u.BroadcastBody.Port,
 	}
 
-	conn, err := net.DialUDP("udp", &localAddr, &remoteAddr)
+	var udpErr error
+	u.BroadcastBody.Connect, udpErr = net.DialUDP("udp", &u.BroadcastBody.LocalAddr, &u.BroadcastBody.RemoteAddr)
 
+	if udpErr != nil {
+		panic(udpErr.Error())
+	}
+
+	go u.receive()
+	go u.loopBroadcast()
+}
+
+func (u *Udp) BroadcastStatus() {
+	message := BroadcastMessage{
+		ShowStatus: u.ShowStatus,
+		Port:       strconv.Itoa(u.BroadcastBody.Port),
+	}
+	jsons, err := json.Marshal(message)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err)
 	}
+	_, err = u.BroadcastBody.Connect.Write(jsons)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
 
-	defer func(conn *net.UDPConn) {
-		err := conn.Close()
-		if err != nil {
-			panic(err.Error())
-		}
-	}(conn)
+func (u *Udp) loopBroadcast() {
 	for {
-		if u.IsBroadCast {
-			message := BroadcastMessage{
-				IsBroadCast: u.IsBroadCast,
-				Port:        strconv.Itoa(port),
-			}
-			jsons, err := json.Marshal(message)
-			if err != nil {
-				fmt.Println(err)
-			}
-			_, err = conn.Write(jsons)
-			if err != nil {
-				fmt.Println(err)
-			}
+		message := BroadcastMessage{
+			ShowStatus: u.ShowStatus,
+			Port:       strconv.Itoa(u.BroadcastBody.Port),
+		}
+		jsons, err := json.Marshal(message)
+		if err != nil {
+			fmt.Println(err)
+		}
+		_, err = u.BroadcastBody.Connect.Write(jsons)
+		if err != nil {
+			fmt.Println(err)
 		}
 
 		time.Sleep(time.Second * 30)
@@ -199,13 +211,7 @@ func (u *Udp) receive() {
 			fmt.Println(err.Error())
 		}
 
-		newNeighbor := Neighbor{
-			Ip:   address,
-			Port: sendPort,
-			Url:  "http://" + address + ":" + sendPort,
-		}
-
-		NeighborKey := ""
+		var NeighborKey string
 		for _, e := range u.IpInfoList {
 			if e.InSameNetwork(address) {
 				NeighborKey = e.Ip
@@ -214,21 +220,38 @@ func (u *Udp) receive() {
 
 		if NeighborKey == "" {
 			fmt.Println(address)
-		}
+		} else {
+			if message.ShowStatus {
+				newNeighbor := Neighbor{
+					Ip:   address,
+					Port: sendPort,
+					Url:  "http://" + address + ":" + sendPort,
+				}
 
-		if !common.InSlice(newNeighbor, u.NeighborList[NeighborKey], func(needle Neighbor, e Neighbor) bool {
-			if e.Url == needle.Url && e.Port == needle.Port {
-				return true
+				if !common.InSlice(newNeighbor, u.NeighborList[NeighborKey], func(needle Neighbor, e Neighbor) bool {
+					if e.Url == needle.Url && e.Port == needle.Port {
+						return true
+					}
+					return false
+				}) && (!common.InSlice(newNeighbor.Ip, u.IpList, func(needle string, e string) bool {
+					if needle == e {
+						return true
+					}
+					return false
+				})) {
+					u.NeighborList[NeighborKey] = append(u.NeighborList[NeighborKey], newNeighbor)
+				}
+			} else {
+				deleteIndex := -1
+				for index, item := range u.NeighborList[NeighborKey] {
+					if item.Ip == address {
+						deleteIndex = index
+					}
+				}
+				if deleteIndex >= 0 {
+					u.NeighborList[NeighborKey] = append(u.NeighborList[NeighborKey][:deleteIndex], u.NeighborList[NeighborKey][(deleteIndex+1):]...)
+				}
 			}
-			return false
-		}) && (!common.InSlice(newNeighbor.Ip, u.IpList, func(needle string, e string) bool {
-			if needle == e {
-				return true
-			}
-			return false
-		})) {
-			u.NeighborList[NeighborKey] = append(u.NeighborList[NeighborKey], newNeighbor)
 		}
-
 	}
 }

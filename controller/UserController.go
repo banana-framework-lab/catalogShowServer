@@ -8,8 +8,8 @@ import (
 
 type ListController struct{}
 
-func (f ListController) RouterList() []param.Router {
-	return []param.Router{
+func (f ListController) RouterList() []*param.Router {
+	return []*param.Router{
 		param.NewRouter("/list/getListByCondition", f.getListByCondition),
 		param.NewRouter("/list/getFiletypeOption", f.getFiletypeOption),
 		param.NewRouter("/list/getCatalogOption", f.getCatalogOption),

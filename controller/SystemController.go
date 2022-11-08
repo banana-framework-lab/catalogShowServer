@@ -9,10 +9,10 @@ import (
 
 type SystemController struct{}
 
-func (s SystemController) RouterList() []param.Router {
-	return []param.Router{
+func (s SystemController) RouterList() []*param.Router {
+	return []*param.Router{
 		param.NewRouter("/system/reloadFile", s.reloadFile),
-		param.NewRouter("/system/editBroadcastStatus", s.editBroadcastStatus),
+		param.NewRouter("/system/editShowStatus", s.editShowStatus),
 		param.NewRouter("/system/getNeighborList", s.getNeighborList),
 	}
 }
@@ -35,7 +35,7 @@ func (SystemController) reloadFile(_ param.Request) param.Response {
 	}
 }
 
-func (SystemController) editBroadcastStatus(req param.Request) param.Response {
+func (SystemController) editShowStatus(req param.Request) param.Response {
 	var data = struct {
 		Status bool `json:"status"`
 	}{
@@ -45,7 +45,7 @@ func (SystemController) editBroadcastStatus(req param.Request) param.Response {
 
 	if err == nil {
 		var l = logic.SystemLogic{}
-		l.EditBroadcastStatus(data.Status)
+		l.EditShowStatus(data.Status)
 		return param.Response{
 			Code:    param.RequestSuccess,
 			Message: "成功更新",
@@ -71,13 +71,14 @@ func (SystemController) getNeighborList(req param.Request) param.Response {
 	}
 	req.GetReqBody().Referer()
 	var l = logic.SystemLogic{}
-	var list, total = l.GetNeighborList(urlData.Hostname())
+	var list, total, BroadcastStatus = l.GetNeighborList(urlData.Hostname())
 	return param.Response{
 		Code:    param.RequestSuccess,
 		Message: "成功获取",
 		Data: struct {
-			List  []library.Neighbor `json:"list"`
-			Total int                `json:"total"`
-		}{List: list, Total: total},
+			List            []library.Neighbor `json:"list"`
+			Total           int                `json:"total"`
+			BroadcastStatus bool               `json:"broadcast_status"`
+		}{List: list, Total: total, BroadcastStatus: BroadcastStatus},
 	}
 }

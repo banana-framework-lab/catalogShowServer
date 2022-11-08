@@ -12,19 +12,19 @@ export interface FileInfo {
 }
 export class GetListByCondition extends Request {
   public url = '/list/getListByCondition'
-  public declare param: {
+  public declare requestParam: {
     name?: string
     file_type?: string
     catalog?: string
     page?: number
     rows?: number
   }
-  public declare datagram: {
+  public declare responseParam: {
     list: FileInfo[]
     total: number
   }
-  public setParam(param: this['param']) {
-    this.param = param
+  public setParam(param: this['requestParam']) {
+    this.requestParam = param
     return this
   }
 }

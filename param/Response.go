@@ -9,6 +9,7 @@ const (
 	RequestSuccess    = 0
 	RequestFail       = 1
 	RequestParamError = 2
+	RequestNoLogin    = 3
 )
 
 type Response struct {
