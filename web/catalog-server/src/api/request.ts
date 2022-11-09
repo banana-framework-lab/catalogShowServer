@@ -61,10 +61,15 @@ export abstract class Request {
   public method: Method = 'GET'
   public requestParam: Record<string, unknown> = {}
   public responseParam!: any
+  public protocolDomain = ''
 
+  public setProtocolDomain(protocolDomain: string) {
+    this.protocolDomain = protocolDomain
+    return this
+  }
   public request(): Promise<HttpResponse<this['responseParam']>> {
     const config: AxiosRequestConfig = {
-      url: this.url,
+      url: this.protocolDomain + this.url,
       method: this.method,
     }
     if (this.method.toLowerCase() === 'get') {

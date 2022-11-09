@@ -1,4 +1,5 @@
-<template>新
+<template>
+  新
   <div>
     <n-layout>
       <n-layout-content content-style="padding: 1rem">
@@ -85,7 +86,10 @@ import { setToken } from '@/util/token'
 import { NForm, FormRules, FormItemRule } from 'naive-ui'
 import router from '@/router'
 
-const form = ref<{ user: string; password: string }>({ user: '', password: '' })
+const form = ref<{ user: string; password: string }>({
+  user: '',
+  password: '',
+})
 const formRef = ref<InstanceType<typeof NForm>>()
 const rules: FormRules = {
   user: [

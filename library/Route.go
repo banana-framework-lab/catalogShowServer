@@ -69,7 +69,16 @@ func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprint(rw, string(contents))
 		return
 	} else {
-		rsp := rt.onRequest(req)
+		if len(req.Header["Origin"]) > 0 {
+			rw.Header().Set("Access-Control-Allow-Origin", req.Header["Origin"][0])
+		}
+		rw.Header().Add("Access-Control-Allow-Credentials", "true")
+		rw.Header().Add("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, OPTION")
+		rsp, httpCode := rt.onRequest(req)
+		if httpCode == http.StatusNotFound {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
 		err := rsp.Send(rw)
 		if err != nil {
 			fmt.Printf("%v", err)
@@ -77,14 +86,14 @@ func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (rt *Route) onRequest(req *http.Request) param.Response {
+func (rt *Route) onRequest(req *http.Request) (param.Response, int) {
 	router, err := rt.getRouter(req.URL.Path)
 	if err != nil {
 		return param.Response{
 			Code:    param.RequestParamError,
 			Message: err.Error(),
 			Data:    struct{}{},
-		}
+		}, http.StatusOK
 	} else {
 		request := param.NewRequest(req)
 		middleErr := router.HandleBeforeMiddleware(request)
@@ -93,9 +102,9 @@ func (rt *Route) onRequest(req *http.Request) param.Response {
 				Code:    middleErr.Code(),
 				Message: middleErr.Error(),
 				Data:    struct{}{},
-			}
+			}, middleErr.HttpCode()
 		}
-		return router.Function(request)
+		return router.Function(request), http.StatusOK
 	}
 }
 

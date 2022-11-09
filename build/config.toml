@@ -5,4 +5,4 @@ port = '8088'
 
 [udp]
 port = '8080'
-isBroadcast = true
+showStatus = true

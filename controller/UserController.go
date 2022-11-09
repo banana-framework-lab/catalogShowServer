@@ -1,80 +1,51 @@
 package controller
 
 import (
-	"github.com/banana-framework-lab/catalogShowServer/body"
 	"github.com/banana-framework-lab/catalogShowServer/logic"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 )
 
-type ListController struct{}
+type UserController struct{}
 
-func (f ListController) RouterList() []*param.Router {
+func (u UserController) RouterList() []*param.Router {
 	return []*param.Router{
-		param.NewRouter("/list/getListByCondition", f.getListByCondition),
-		param.NewRouter("/list/getFiletypeOption", f.getFiletypeOption),
-		param.NewRouter("/list/getCatalogOption", f.getCatalogOption),
+		param.NewRouter("/user/login", u.login).SetCommonMiddlewareStatus(param.MiddlewareTypeBefore, false),
 	}
 }
 
-func (ListController) getFiletypeOption(_ param.Request) param.Response {
-	var l = logic.ListLogic{}
-	var options = l.GetFiletypeOption()
-	return param.Response{
-		Code:    param.RequestSuccess,
-		Message: "成功获取",
-		Data: struct {
-			Options body.FileTypeOptionList `json:"options"`
-		}{Options: options},
-	}
-}
-
-func (ListController) getCatalogOption(_ param.Request) param.Response {
-	var l = logic.ListLogic{}
-	var options = l.GetCatalogOption()
-	return param.Response{
-		Code:    param.RequestSuccess,
-		Message: "成功获取",
-		Data: struct {
-			Options body.CatalogOptionList `json:"options"`
-		}{Options: options},
-	}
-}
-
-func (ListController) getListByCondition(req param.Request) param.Response {
+func (UserController) login(req param.Request) param.Response {
 	var data = struct {
-		Name     string `schema:"name"`
-		FileType string `schema:"file_type"`
-		Catalog  string `schema:"catalog"`
-		Page     int    `schema:"page"`
-		Rows     int    `schema:"rows"`
+		User     string `json:"user"`
+		Password string `json:"password"`
 	}{
-		Name:     "",
-		FileType: "",
-		Catalog:  "",
-		Page:     param.DefaultPage,
-		Rows:     param.DefaultRows,
+		User:     "",
+		Password: "",
 	}
-	err := req.GET(&data)
+	err := req.POST(&data)
 
 	if err == nil {
-		var l = logic.ListLogic{}
-		var list, total = l.GetListByCondition(data.Name, data.FileType, data.Catalog, data.Page, data.Rows)
-		return param.Response{
-			Code:    param.RequestSuccess,
-			Message: "成功获取",
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: list, Total: total},
+		var l = logic.UserLogic{}
+		var result, md5 = l.Login(data.User, data.Password)
+		if result {
+			return param.Response{
+				Code:    param.RequestSuccess,
+				Message: "登陆成功",
+				Data: struct {
+					Token string `json:"token"`
+				}{Token: md5},
+			}
+		} else {
+			return param.Response{
+				Code:    param.RequestFail,
+				Message: "登陆失败：账号密码错误",
+				Data:    struct{}{},
+			}
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
-			Message: "失败获取" + err.Error(),
-			Data: struct {
-				List  []param.FileInfo `json:"list"`
-				Total int              `json:"total"`
-			}{List: []param.FileInfo{}, Total: 0},
+			Message: "登陆失败" + err.Error(),
+			Data:    struct{}{},
 		}
 	}
 }

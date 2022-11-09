@@ -15,10 +15,20 @@ func NewRouter(url string, f func(req Request) Response) *Router {
 
 func (r *Router) SetCommonMiddlewareStatus(mdType string, status bool) *Router {
 	if mdType == MiddlewareTypeBefore {
-		r.Middleware.Common.BeforeDisable = status
+		r.Middleware.Common.BeforeDisable = !status
 	} else {
-		r.Middleware.Common.AfterDisable = status
+		r.Middleware.Common.AfterDisable = !status
 	}
+	return r
+}
+
+func (r *Router) SetBeforeMiddleware(f func(Request) *AppError) *Router {
+	r.Middleware.Before = append(r.Middleware.Before, f)
+	return r
+}
+
+func (r *Router) SetAfterMiddleware(f func(Request) *AppError) *Router {
+	r.Middleware.After = append(r.Middleware.After, f)
 	return r
 }
 

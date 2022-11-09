@@ -26,7 +26,11 @@
                 justify-content: flex-end;
               "
             >
-              <n-tooltip placement="bottom" trigger="hover">
+              <n-tooltip
+                v-if="neighborUrl === ''"
+                placement="bottom"
+                trigger="hover"
+              >
                 <template #trigger>
                   <n-button
                     quaternary
@@ -52,6 +56,7 @@
                 trigger="click"
                 :render-label="renderNeighborOptionsIcon"
                 scrollable
+                :on-update:value="changeNeighor"
               >
                 <n-button quaternary circle type="primary">
                   <template #icon>
@@ -103,7 +108,7 @@
         >
           <n-input-group>
             <n-select
-              v-model:value="search.conditon.fileType"
+              v-model:value="search.condition.fileType"
               style="width: 13rem"
               clearable
               filterable
@@ -112,19 +117,19 @@
               @update:value="getListByCondition(1)"
             />
             <n-input
-              v-model:value="search.conditon.name"
+              v-model:value="search.condition.name"
               clearable
               default-value=""
-              :placeholder="search.conditon.placeholder"
+              :placeholder="search.condition.placeholder"
               @change="
                 () => {
-                  search.conditon.name
-                    ? (search.conditon.placeholder = search.conditon.name)
+                  search.condition.name
+                    ? (search.condition.placeholder = search.condition.name)
                     : ''
                 }
               "
               @keyup.enter="searchFunction()"
-              @clear="search.conditon.placeholder = '输入文件名字'"
+              @clear="search.condition.placeholder = '输入文件名字'"
             />
             <n-button strong secondary type="primary" @click="searchFunction()">
               搜索
@@ -163,7 +168,7 @@
         </n-layout-content>
         <n-layout-content content-style="padding: 0.5rem 1rem 1rem 1rem;">
           <n-select
-            v-model:value="search.conditon.catalog"
+            v-model:value="search.condition.catalog"
             clearable
             filterable
             :options="catalogOption"
@@ -393,8 +398,8 @@
                 :item-count="search.total"
                 show-quick-jumper
                 style="justify-content: center"
-                :page="search.conditon.page"
-                :page-size="search.conditon.rows"
+                :page="search.condition.page"
+                :page-size="search.condition.rows"
                 :page-slot="5"
                 @update:page="(page:number)=>{getListByCondition(page)}"
               >
@@ -462,6 +467,7 @@
 export default { name: 'Show' }
 </script>
 <script setup lang="ts">
+import { AxiosError } from 'axios'
 import { IosAirplane } from '@vicons/ionicons4'
 import { RefreshCircleOutline, Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
@@ -559,7 +565,7 @@ const search = reactive<{
   list: FileInfo[]
   total: number
   loading: boolean
-  conditon: {
+  condition: {
     name?: string
     placeholder: string
     fileType: string | null
@@ -574,7 +580,7 @@ const search = reactive<{
   list: [],
   loading: false,
   total: 0,
-  conditon: {
+  condition: {
     placeholder: '输入文件名字',
     // fileType: '.mkv',
     fileType: null,
@@ -585,18 +591,21 @@ const search = reactive<{
 })
 
 function searchFunction() {
-  if (!search.conditon.name && search.conditon.placeholder !== '输入文件名字') {
-    search.conditon.name = search.conditon.placeholder
+  if (
+    !search.condition.name &&
+    search.condition.placeholder !== '输入文件名字'
+  ) {
+    search.condition.name = search.condition.placeholder
   }
 
-  if (search.conditon.name) {
+  if (search.condition.name) {
     const history = String(Cookies.get('search.history') || '[]')
     search.history = JSON.parse(history)
-    if (search.history.indexOf(search.conditon.name) < 0) {
+    if (search.history.indexOf(search.condition.name) < 0) {
       if (search.history.length >= 5) {
         search.history.shift()
       }
-      search.history.push(search.conditon.name)
+      search.history.push(search.condition.name)
       Cookies.set('search.history', JSON.stringify(search.history))
     }
   }
@@ -615,7 +624,7 @@ function initHistory() {
 initHistory()
 
 function clickHistory(tag: string) {
-  search.conditon.name = tag
+  search.condition.name = tag
   searchFunction()
 }
 
@@ -644,18 +653,19 @@ getCatalogOption()
 
 function getListByCondition(page = 1) {
   search.loading = true
-  search.conditon.page = page
+  search.condition.page = page
   new GetListByCondition()
+    .setProtocolDomain(neighborUrl.value)
     .setParam({
-      name: search.conditon.name,
-      file_type: search.conditon.fileType
-        ? String(search.conditon.fileType)
+      name: search.condition.name,
+      file_type: search.condition.fileType
+        ? String(search.condition.fileType)
         : undefined,
-      catalog: search.conditon.catalog
-        ? String(search.conditon.catalog)
+      catalog: search.condition.catalog
+        ? String(search.condition.catalog)
         : undefined,
-      page: search.conditon.page,
-      rows: search.conditon.rows,
+      page: search.condition.page,
+      rows: search.condition.rows,
     })
     .request()
     .then((res) => {
@@ -664,15 +674,22 @@ function getListByCondition(page = 1) {
       search.list = res.data.list
       search.total = res.data.total
     })
+    .catch((err: AxiosError) => {
+      if (Number(err.response?.status) == 404) {
+        search.list = []
+        search.total = 0
+        search.condition.page = 1
+      }
+    })
     .finally(() => {
       search.loading = false
     })
 }
 
 function seeOther() {
-  search.conditon.name = ''
-  search.conditon.catalog = null
-  search.conditon.fileType = null
+  search.condition.name = ''
+  search.condition.catalog = null
+  search.condition.fileType = null
   getListByCondition(1)
 }
 
@@ -716,6 +733,12 @@ getNeighborList()
 setInterval(() => {
   getNeighborList()
 }, 60000)
+
+function changeNeighor(a: string) {
+  neighborUrl.value = a
+  console.log(a, neighborUrl)
+  getListByCondition(1)
+}
 
 function renderNeighborOptionsIcon(option: SelectOption | SelectGroupOption) {
   return h(
