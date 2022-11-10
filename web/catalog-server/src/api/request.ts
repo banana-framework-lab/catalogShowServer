@@ -30,6 +30,12 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse) => {
     const res = response.data
+    if (!res) {
+      window['$message'].error('empty')
+      deletToken()
+      router.push('/login')
+      return
+    }
     if (Number(res.code) !== 0) {
       window['$message'].error(res.message)
       if (Number(res.code) === 3) {

@@ -96,7 +96,6 @@ const rules: FormRules = {
     {
       required: true,
       validator(rule: FormItemRule, value: string) {
-        console.log(value)
         if (!value) {
           return new Error('请输入用户名')
         }

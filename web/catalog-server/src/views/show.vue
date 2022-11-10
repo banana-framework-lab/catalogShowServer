@@ -77,6 +77,7 @@
                         secondary
                         round
                         type="primary"
+                        @click="getNeighborList"
                       >
                         <template #icon>
                           <n-icon
@@ -494,6 +495,9 @@ import {
 import { h, reactive, ref, onMounted } from 'vue'
 import Cookies from 'js-cookie'
 import { Player, Video, Audio, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
+
+import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
+
 const neighborStatus = ref<boolean>(false)
 const message = useMessage()
 function editBroadcastStatus() {
@@ -730,9 +734,17 @@ function getNeighborList() {
 }
 getNeighborList()
 
-setInterval(() => {
+const loopGetNeighborList = setInterval(() => {
   getNeighborList()
-}, 60000)
+}, 10000)
+
+onBeforeRouteLeave(
+  (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
+    if (to.path == '/login') {
+      clearInterval(loopGetNeighborList)
+    }
+  }
+)
 
 function changeNeighor(a: string) {
   neighborUrl.value = a
@@ -744,7 +756,7 @@ function renderNeighborOptionsIcon(option: SelectOption | SelectGroupOption) {
   return h(
     'span',
     {
-      style: 'display: flex; text-align: center;justify-content: start;',
+      style: 'display: flex; align-items: center;justify-content: start;',
     },
     [
       h(

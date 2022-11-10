@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -78,7 +79,7 @@ func (f *File) _init() {
 
 	f._frame()
 
-	common.PrintfClean("The catalogShowServer file has been read")
+	common.PrintfClean("The catalogShowServer file has been read, " + strconv.Itoa(len(f.FileList)) + " files in total")
 }
 
 func (f *File) _frame() {
