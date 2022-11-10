@@ -95,6 +95,7 @@ func (f *File) Init() {
 	f._init()
 	http.Handle("/file/", f)
 	http.Handle("/static/", f)
+	http.Handle("/favicon.ico", f)
 }
 
 func (f *File) catalogRecurrence(src string) []int {
@@ -181,7 +182,7 @@ func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.URL.Path, "/static/") {
+	if strings.HasPrefix(req.URL.Path, "/static/") || strings.HasPrefix(req.URL.Path, "/favicon.ico") {
 		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
 			log.Fatal(err)

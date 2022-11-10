@@ -1,7 +1,14 @@
 # CatalogShowServer
 
-CatalogShowServer is a file server based on go and vue3. It is also the 2.0 version of TopV
+<div align="center">
+<img
+  width="200"
+  src="static/logo-nb.png"
+  alt="CatalogShowServer Logo"
+/>
+</div>
 
+CatalogShowServer is a file server based on go and vue3. It is also the 2.0 version of TopV
 
 ## Screenshot
 

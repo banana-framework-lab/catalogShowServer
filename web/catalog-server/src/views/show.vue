@@ -748,7 +748,6 @@ onBeforeRouteLeave(
 
 function changeNeighor(a: string) {
   neighborUrl.value = a
-  console.log(a, neighborUrl)
   getListByCondition(1)
 }
 

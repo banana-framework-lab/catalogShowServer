@@ -1,5 +1,4 @@
 <template>
-  新
   <div>
     <n-layout>
       <n-layout-content content-style="padding: 1rem">
