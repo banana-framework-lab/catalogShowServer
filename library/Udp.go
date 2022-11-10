@@ -13,8 +13,8 @@ import (
 type Udp struct {
 	IpList        []string
 	IpInfoList    []IpInfo
-	BroadcastBody BroadcastBody
 	ShowStatus    bool
+	BroadcastBody BroadcastBody
 	NeighborList  map[string][]Neighbor
 }
 
@@ -115,6 +115,24 @@ func (u *Udp) Init() {
 		}
 	}
 
+	networkCardConn, networkCardErr := net.Dial("udp", "8.8.8.8:53")
+	if networkCardErr != nil {
+		fmt.Println(networkCardErr)
+	}
+	localAddr := networkCardConn.LocalAddr().(*net.UDPAddr)
+	outgoingIp := strings.Split(localAddr.String(), ":")[0]
+	outgoingBroadcastIp := ""
+
+	for _, ipInfo := range u.IpInfoList {
+		if ipInfo.Ip == outgoingIp {
+			outgoingBroadcastIp = ipInfo.BroadcastIp
+		}
+	}
+
+	if outgoingBroadcastIp == "" {
+		panic("找不到网卡ip广播地址")
+	}
+
 	var sErr error
 	u.BroadcastBody.Port, sErr = strconv.Atoi(containerInstance.config.Udp.Port)
 	if sErr != nil {
@@ -127,7 +145,7 @@ func (u *Udp) Init() {
 	}
 
 	u.BroadcastBody.RemoteAddr = net.UDPAddr{
-		IP:   net.ParseIP(u.IpInfoList[0].BroadcastIp),
+		IP:   net.ParseIP(outgoingBroadcastIp),
 		Port: u.BroadcastBody.Port,
 	}
 
