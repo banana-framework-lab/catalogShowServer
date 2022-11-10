@@ -6,9 +6,9 @@ CatalogShowServer is a file server based on go and vue3. It is also the 2.0 vers
 ## Screenshot
 
 <div>
-<img style="margin-top: 10px;" src="./image_store/pic1.jpg" alt="CatalogShowServer Screenshot"/>
-<img style="margin-top: 10px;" src="./image_store/pic2.jpg" alt="CatalogShowServer Screenshot"/>
-<img style="margin-top: 10px;" src="./image_store/pic3.jpg" alt="CatalogShowServer Screenshot"/>
+<img style="margin-top: 10px;" src="static/pic1.jpg" alt="CatalogShowServer Screenshot"/>
+<img style="margin-top: 10px;" src="static/pic2.jpg" alt="CatalogShowServer Screenshot"/>
+<img style="margin-top: 10px;" src="static/pic3.jpg" alt="CatalogShowServer Screenshot"/>
 </div>
 
 ## 🌎 Browsers
