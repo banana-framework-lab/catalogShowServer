@@ -227,72 +227,31 @@
                     v-for="(item, index) in search.list"
                     :key="index"
                   >
-                    <n-card :key="index">
+                    <n-card v-if="search.reloadList" :key="index">
                       <template #cover>
-                        <div v-if="item.open_width === 'image'">
-                          <div
-                            style="
-                              display: flex;
-                              justify-content: center;
-                              height: 16.8rem;
-                            "
-                          >
-                            <n-image
-                              object-fit="contain"
-                              lazy
-                              :src="baseUrl + item.url"
-                            />
-                          </div>
-                        </div>
-                        <div v-if="item.open_width === 'video'">
-                          <div
-                            style="
-                              height: 16.8rem;
-                              display: flex !important;
-                              align-items: center;
-                            "
-                          >
-                            <Player
-                              style="width: 100%; --vm-player-theme: #63e2b7"
-                            >
-                              <DefaultUi
-                                :active-duration="10"
-                                :wait-for-playback-start="true"
-                                :hide-on-mouse-leave="true"
-                              />
-                              <Video>
-                                <source :data-src="baseUrl + item.url" />
-                              </Video>
-                            </Player>
-                          </div>
-                        </div>
-                        <div v-if="item.open_width === 'audio'">
-                          <div
-                            style="
-                              height: 16.8rem;
-                              display: flex;
-                              flex-flow: column;
-                              align-items: center;
-                              justify-content: center;
-                            "
-                          >
-                            <div>
-                              <n-icon size="155" color="#63e2b7">
-                                <MusicVideoOutlined />
-                              </n-icon>
-                            </div>
-                            <div style="width: 100%">
-                              <Player loop style="--vm-player-theme: #63e2b7">
-                                <DefaultUi />
-                                <Audio
-                                  :media-title="item.name"
-                                  cross-origin="anonymous"
-                                >
-                                  <source :data-src="baseUrl + item.url" />
-                                </Audio>
-                              </Player>
-                            </div>
-                          </div>
+                        <div
+                          style="
+                            height: 16.8rem;
+                            display: flex;
+                            flex-flow: column;
+                            align-items: center;
+                            justify-content: center;
+                          "
+                        >
+                          <n-image
+                            v-if="item.open_width === 'image'"
+                            object-fit="contain"
+                            lazy
+                            :src="baseUrl + item.url"
+                          />
+                          <VideoShow
+                            v-if="item.open_width === 'video'"
+                            :url="baseUrl + item.url"
+                          />
+                          <AudioShow
+                            v-if="item.open_width === 'audio'"
+                            :url="baseUrl + item.url"
+                          />
                         </div>
                       </template>
                       <div style="word-break: break-all">
@@ -381,7 +340,10 @@
               </div>
             </div>
             <div v-show="search.list.length <= 0">
-              <n-empty description="没有文件，随机看看别的">
+              <n-empty
+                description="没有文件，随机看看别的"
+                style="margin-top: 20px"
+              >
                 <template #icon>
                   <n-icon>
                     <ios-airplane />
@@ -394,7 +356,7 @@
                 </template>
               </n-empty>
             </div>
-            <div style="margin-top: 1rem">
+            <div v-show="search.list.length > 0" style="margin-top: 1rem">
               <n-pagination
                 :item-count="search.total"
                 show-quick-jumper
@@ -431,33 +393,10 @@
           :src="show.source.pic.url"
         />
         <div v-if="show.modal.type === 'video'" style="text-align: center">
-          <Player
-            style="--vm-player-theme: #63e2b7; height: calc(100vh - 105rem)"
-          >
-            <Video>
-              <source :data-src="show.source.video.url" />
-            </Video>
-            <DefaultUi
-              :active-duration="10"
-              :wait-for-playback-start="true"
-              :hide-on-mouse-leave="true"
-            />
-          </Player>
+          <VideoShow :url="show.source.video.url" />
         </div>
         <div v-if="show.modal.type === 'audio'" class="modal-audio">
-          <div>
-            <n-icon size="155" color="#63e2b7">
-              <MusicVideoOutlined />
-            </n-icon>
-          </div>
-          <div style="width: 100%">
-            <Player loop>
-              <DefaultUi />
-              <Audio :media-title="show.source.audio.name">
-                <source :data-src="show.source.audio.url" />
-              </Audio>
-            </Player>
-          </div>
+          <AudioShow :url="show.source.audio.url" />
         </div>
       </n-scrollbar>
     </n-modal>
@@ -472,7 +411,7 @@ import { AxiosError } from 'axios'
 import { IosAirplane } from '@vicons/ionicons4'
 import { RefreshCircleOutline, Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
-import { MusicVideoOutlined } from '@vicons/material'
+
 import { Eye } from '@vicons/fa'
 import { Network4, UpdateNow } from '@vicons/carbon'
 import { UserCircle } from '@vicons/tabler'
@@ -492,9 +431,10 @@ import {
   SelectGroupOption,
   useMessage,
 } from 'naive-ui'
-import { h, reactive, ref, onMounted } from 'vue'
+import { h, reactive, ref, onMounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import { Player, Video, Audio, DefaultUi } from '@vime/vue-next' // https://vimejs.com/
+import VideoShow from '@/views/components/VideoShow.vue'
+import AudioShow from '@/views/components/AudioShow.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
 
@@ -566,6 +506,7 @@ function showModal(item: FileInfo) {
 const search = reactive<{
   mode: string
   history: string[]
+  reloadList: boolean
   list: FileInfo[]
   total: number
   loading: boolean
@@ -581,13 +522,14 @@ const search = reactive<{
   // mode: 'table',
   mode: 'list',
   history: [],
+  reloadList: true,
   list: [],
   loading: false,
   total: 0,
   condition: {
     placeholder: '输入文件名字',
-    // fileType: '.mkv',
-    fileType: null,
+    fileType: '.mkv',
+    // fileType: null,
     catalog: null,
     page: 1,
     rows: 20,
@@ -673,10 +615,15 @@ function getListByCondition(page = 1) {
     })
     .request()
     .then((res) => {
-      listShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
-      tableShowRef.value?.$el.scrollIntoView({ behavior: 'smooth' })
-      search.list = res.data.list
-      search.total = res.data.total
+      listShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+      tableShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+      search.reloadList = false
+      nextTick(() => {
+        search.list = res.data.list
+        search.total = res.data.total
+        search.loading = false
+        search.reloadList = true
+      })
     })
     .catch((err: AxiosError) => {
       if (Number(err.response?.status) == 404) {
@@ -684,8 +631,6 @@ function getListByCondition(page = 1) {
         search.total = 0
         search.condition.page = 1
       }
-    })
-    .finally(() => {
       search.loading = false
     })
 }
