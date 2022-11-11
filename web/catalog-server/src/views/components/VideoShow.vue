@@ -24,10 +24,10 @@
       </Controls>
       <ClickToPlay />
       <DblClickFullscreen />
-      <Poster />
+      <Poster fit="contain" />
       <DefaultSettings />
     </Ui>
-    <Video>
+    <Video :poster="props.cover">
       <source :data-src="props.url" />
     </Video>
   </Player>
@@ -59,6 +59,10 @@ import { defineProps } from 'vue'
 
 const props = defineProps({
   url: {
+    type: String,
+    default: '',
+  },
+  cover: {
     type: String,
     default: '',
   },

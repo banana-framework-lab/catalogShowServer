@@ -247,6 +247,9 @@
                           <VideoShow
                             v-if="item.open_width === 'video'"
                             :url="baseUrl + item.url"
+                            :cover="
+                              baseUrl + '/cover/?file_index=' + item.index
+                            "
                           />
                           <AudioShow
                             v-if="item.open_width === 'audio'"

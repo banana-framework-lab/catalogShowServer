@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -94,8 +95,10 @@ func (f *File) ReInit() bool {
 func (f *File) Init() {
 	f._init()
 	http.Handle("/file/", f)
+	http.Handle("/cover/", f)
 	http.Handle("/static/", f)
 	http.Handle("/favicon.ico", f)
+	f.Test()
 }
 
 func (f *File) catalogRecurrence(src string) []int {
@@ -188,6 +191,29 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 			log.Fatal(err)
 		}
 		statigz.FileServer(subFS.(fs.ReadDirFS)).ServeHTTP(rw, req)
+	} else if strings.HasPrefix(req.URL.Path, "/cover/") {
+		values := req.URL.Query()
+
+		fileIndex := values.Get("file_index")
+
+		if fileIndex == "" {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		fileIndexNumber, _ := strconv.Atoi(fileIndex)
+
+		if !(fileIndexNumber >= 0 && fileIndexNumber < len(f.FileList)) {
+			rw.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		fmt.Printf("%v", len(f.FileList[fileIndexNumber].GetCover()))
+
+		_, err := rw.Write(f.FileList[fileIndexNumber].GetCover())
+		if err != nil {
+			fmt.Printf("%v \n", err)
+		}
 	} else {
 		values := req.URL.Query()
 
@@ -216,5 +242,35 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 		}(file)
 
 		http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
+	}
+}
+
+func (f *File) Test() {
+	for index, item := range f.FileList {
+		if item.OpenWidth == "video" {
+			//if item.FileType == ".mp4" {
+			cmdName := "./ffmpeg"
+			args := []string{
+				"-ss",
+				"10",
+				"-i",
+				item.AbsoluteSrc,
+				"-vframes",
+				"1",
+				"-loglevel",
+				"quiet",
+				"-f",
+				"mjpeg",
+				"pipe:1",
+			}
+
+			cmd := exec.Command(cmdName, args...)
+
+			if output, err := cmd.CombinedOutput(); err == nil {
+				f.FileList[index].SetCover(output)
+			} else {
+				fmt.Printf("%v", err.Error())
+			}
+		}
 	}
 }
