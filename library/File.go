@@ -268,9 +268,12 @@ func (f *File) Test() {
 
 			if output, err := cmd.CombinedOutput(); err == nil {
 				f.FileList[index].SetCover(output)
-			} else {
-				fmt.Printf("%v", err.Error())
 			}
+			common.PrintfClean(
+				"CatalogShowServer is setup the cover for :" +
+					f.FileList[index].Name + "..." +
+					strconv.Itoa(int((float64(index)/float64(len(f.FileList)))*100.00)) + "%",
+			)
 		}
 	}
 }

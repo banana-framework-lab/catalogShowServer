@@ -49,7 +49,7 @@ func (ii *IpInfo) InSameNetwork(otherIp string) bool {
 		ipSplitUnitCopy := uint8(ipSplitUnit)
 		netMaskSplitUnit, _ := strconv.ParseUint(netMaskSplit[i], 10, 8)
 		netMaskSplitUnitCopy := uint8(^netMaskSplitUnit)
-		ipResult += strconv.FormatUint(uint64(ipSplitUnitCopy&netMaskSplitUnitCopy), 10)
+		ipResult += strconv.FormatUint(uint64(ipSplitUnitCopy|netMaskSplitUnitCopy), 10)
 	}
 
 	var otherIpResult = ""
@@ -58,7 +58,7 @@ func (ii *IpInfo) InSameNetwork(otherIp string) bool {
 		otherIpSplitUnitCopy := uint8(otherIpSplitUnit)
 		netMaskSplitUnit, _ := strconv.ParseUint(netMaskSplit[i], 10, 8)
 		netMaskSplitUnitCopy := uint8(^netMaskSplitUnit)
-		otherIpResult += strconv.FormatUint(uint64(otherIpSplitUnitCopy&netMaskSplitUnitCopy), 10)
+		otherIpResult += strconv.FormatUint(uint64(otherIpSplitUnitCopy|netMaskSplitUnitCopy), 10)
 	}
 
 	return ipResult == otherIpResult
@@ -66,7 +66,7 @@ func (ii *IpInfo) InSameNetwork(otherIp string) bool {
 
 type BroadcastMessage struct {
 	ShowStatus bool   `json:"show_status"`
-	Port       string `json:"port"`
+	WebPort    string `json:"port"`
 }
 
 func (u *Udp) getBroadcastIp(ip string, netMask string) string {
@@ -163,7 +163,7 @@ func (u *Udp) Init() {
 func (u *Udp) BroadcastStatus() {
 	message := BroadcastMessage{
 		ShowStatus: u.ShowStatus,
-		Port:       strconv.Itoa(u.BroadcastBody.Port),
+		WebPort:    strconv.Itoa(u.BroadcastBody.Port),
 	}
 	jsons, err := json.Marshal(message)
 	if err != nil {
@@ -179,7 +179,7 @@ func (u *Udp) loopBroadcast() {
 	for {
 		message := BroadcastMessage{
 			ShowStatus: u.ShowStatus,
-			Port:       strconv.Itoa(u.BroadcastBody.Port),
+			WebPort:    containerInstance.config.Web.Port,
 		}
 		jsons, err := json.Marshal(message)
 		if err != nil {
@@ -243,9 +243,8 @@ func (u *Udp) receive() {
 				newNeighbor := Neighbor{
 					Ip:   address,
 					Port: sendPort,
-					Url:  "http://" + address + ":" + sendPort,
+					Url:  "http://" + address + ":" + message.WebPort,
 				}
-
 				if !common.InSlice(newNeighbor, u.NeighborList[NeighborKey], func(needle Neighbor, e Neighbor) bool {
 					if e.Url == needle.Url && e.Port == needle.Port {
 						return true
