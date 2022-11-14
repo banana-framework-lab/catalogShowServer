@@ -244,20 +244,43 @@
                             lazy
                             :src="baseUrl + item.url"
                           />
-                          <VideoShow
-                            v-if="item.open_width === 'video'"
-                            :url="baseUrl + item.url"
-                            :cover="
-                              baseUrl + '/cover/?file_index=' + item.index
-                            "
-                          />
-                          <AudioShow
+                          <div v-if="item.open_width === 'video'">
+                            <div
+                              style="
+                                height: 16.8rem;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                              "
+                            >
+                              <n-image
+                                :preview-disabled="true"
+                                object-fit="contain"
+                                lazy
+                                :src="
+                                  baseUrl + '/cover/?file_index=' + item.index
+                                "
+                              />
+                              <n-icon size="40" style="position: absolute">
+                                <PlayCircle
+                                  style="
+                                    text-align: center;
+                                    vertical-align: middle;
+                                    color: #63e2b7;
+                                    cursor: pointer;
+                                  "
+                                  @click="showModal(item)"
+                                />
+                              </n-icon>
+                            </div>
+                          </div>
+                          <AudioShowVime
                             v-if="item.open_width === 'audio'"
                             :url="baseUrl + item.url"
                           />
                         </div>
                       </template>
-                      <div style="word-break: break-all">
+                      <div style="word-break: break-all; margin-top: 5px">
                         <n-ellipsis
                           expand-trigger="click"
                           line-clamp="1"
@@ -395,11 +418,22 @@
           object-fit="scale-down"
           :src="show.source.pic.url"
         />
-        <div v-if="show.modal.type === 'video'" style="text-align: center">
-          <VideoShow :url="show.source.video.url" />
+        <div
+          v-if="show.modal.type === 'video'"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 8rem);
+          "
+        >
+          <VideoShowVime
+            :url="show.source.video.url"
+            :cover="show.source.video.cover"
+          />
         </div>
         <div v-if="show.modal.type === 'audio'" class="modal-audio">
-          <AudioShow :url="show.source.audio.url" />
+          <AudioShowVime :url="show.source.audio.url" />
         </div>
       </n-scrollbar>
     </n-modal>
@@ -415,7 +449,7 @@ import { IosAirplane } from '@vicons/ionicons4'
 import { RefreshCircleOutline, Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
 
-import { Eye } from '@vicons/fa'
+import { Eye, PlayCircle } from '@vicons/fa'
 import { Network4, UpdateNow } from '@vicons/carbon'
 import { UserCircle } from '@vicons/tabler'
 import { GetListByCondition, FileInfo } from '@/api/list'
@@ -436,8 +470,8 @@ import {
 } from 'naive-ui'
 import { h, reactive, ref, onMounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import VideoShow from '@/views/components/VideoShow.vue'
-import AudioShow from '@/views/components/AudioShow.vue'
+import VideoShowVime from '@/views/components/VideoShowVime.vue'
+import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
 
@@ -469,7 +503,7 @@ const show = reactive<{
   }
   source: {
     pic: { name: string; url: string }
-    video: { name: string; url: string }
+    video: { name: string; url: string; cover: string }
     audio: { name: string; url: string }
   }
 }>({
@@ -480,7 +514,7 @@ const show = reactive<{
   },
   source: {
     pic: { name: '', url: '' },
-    video: { name: '', url: '' },
+    video: { name: '', url: '', cover: '' },
     audio: { name: '', url: '' },
   },
 })
@@ -495,7 +529,11 @@ function showModal(item: FileInfo) {
       show.modal.type = 'pic'
       break
     case 'video':
-      show.source.video = { name, url }
+      show.source.video = {
+        name,
+        url,
+        cover: baseUrl + '/cover/?file_index=' + item.index,
+      }
       show.modal.type = 'video'
       break
     case 'audio':

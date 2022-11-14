@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -78,13 +77,9 @@ func (f *File) _init() {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
 
-	f._frame()
+	f.setupFrame()
 
-	common.PrintfClean("The catalogShowServer file has been read, " + strconv.Itoa(len(f.FileList)) + " files in total")
-}
-
-func (f *File) _frame() {
-
+	common.PrintfClean(fmt.Sprintf("The catalogShowServer file has been read, %d files in total", len(f.FileList)))
 }
 
 func (f *File) ReInit() bool {
@@ -98,7 +93,7 @@ func (f *File) Init() {
 	http.Handle("/cover/", f)
 	http.Handle("/static/", f)
 	http.Handle("/favicon.ico", f)
-	f.Test()
+
 }
 
 func (f *File) catalogRecurrence(src string) []int {
@@ -208,8 +203,6 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		fmt.Printf("%v", len(f.FileList[fileIndexNumber].GetCover()))
-
 		_, err := rw.Write(f.FileList[fileIndexNumber].GetCover())
 		if err != nil {
 			fmt.Printf("%v \n", err)
@@ -245,34 +238,24 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (f *File) Test() {
+func (f *File) setupFrame() {
 	for index, item := range f.FileList {
-		if item.OpenWidth == "video" {
-			//if item.FileType == ".mp4" {
-			cmdName := "./ffmpeg"
-			args := []string{
-				"-ss",
-				"10",
-				"-i",
-				item.AbsoluteSrc,
-				"-vframes",
-				"1",
-				"-loglevel",
-				"quiet",
-				"-f",
-				"mjpeg",
-				"pipe:1",
+		if item.OpenWidth == "video" && len(f.FileList[index].GetCover()) <= 0 {
+			if duration, err := common.Video.GetDuration(item.AbsoluteSrc); err == nil {
+				if durationNumber, err := strconv.ParseFloat(duration, 2); err == nil {
+					if output, err := common.Video.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
+						f.FileList[index].SetCover(output)
+					}
+				}
 			}
 
-			cmd := exec.Command(cmdName, args...)
-
-			if output, err := cmd.CombinedOutput(); err == nil {
-				f.FileList[index].SetCover(output)
-			}
 			common.PrintfClean(
-				"CatalogShowServer is setup the cover for :" +
-					f.FileList[index].Name + "..." +
-					strconv.Itoa(int((float64(index)/float64(len(f.FileList)))*100.00)) + "%",
+				fmt.Sprintf(
+					"CatalogShowServer is setup the cover for : %.40s ... %d%s",
+					f.FileList[index].Name,
+					int((float64(index)/float64(len(f.FileList)))*100.00),
+					"%",
+				),
 			)
 		}
 	}

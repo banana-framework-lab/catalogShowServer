@@ -7,7 +7,6 @@ import (
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"net"
 	"path/filepath"
-	"strconv"
 )
 
 type Container struct {
@@ -108,7 +107,7 @@ func (ctn *Container) ShowStartText() {
 }
 
 func (ctn *Container) ShowReadyText() {
-	common.PrintfClean("CatalogShowServer Ready, " + strconv.Itoa(len(ctn.file.FileList)) + " files in total")
+	common.PrintfClean(fmt.Sprintf("CatalogShowServer Ready, %d files in total", len(ctn.file.FileList)))
 	fmt.Println("")
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
