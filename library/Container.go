@@ -3,9 +3,13 @@ package library
 import (
 	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/abstract"
+	"github.com/banana-framework-lab/catalogShowServer/bin"
 	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
+	"io"
+	"io/fs"
 	"net"
+	"os"
 	"path/filepath"
 )
 
@@ -64,6 +68,7 @@ func GetContainer() *Container {
 
 func Init() {
 	GetContainer()
+	containerInstance.CopyFfmpegFile()
 	containerInstance.ShowStartText()
 	containerInstance.GetConfig().Init()
 	containerInstance.GetFile().Init()
@@ -71,6 +76,34 @@ func Init() {
 	containerInstance.GetUdp().Init()
 	containerInstance.GetUser().Init()
 	containerInstance.ShowReadyText()
+}
+
+func (ctn *Container) CopyFfmpegFile() {
+	fileList := []string{"ffmpeg.exe", "ffplay.exe", "ffprobe.exe"}
+
+	for _, file := range fileList {
+		ffmpegOpen, err := bin.WindowsFfmpeg.Open("ffmpeg/windows/" + file)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer func(ffmpegOpen fs.File) {
+			err := ffmpegOpen.Close()
+			if err != nil {
+
+			}
+		}(ffmpegOpen)
+		ffmpegOut, err := os.Create(file)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer func(ffmpegOut *os.File) {
+			err := ffmpegOut.Close()
+			if err != nil {
+
+			}
+		}(ffmpegOut)
+		_, err = io.Copy(ffmpegOut, ffmpegOpen)
+	}
 }
 
 func (ctn *Container) GetConfig() *Config {
