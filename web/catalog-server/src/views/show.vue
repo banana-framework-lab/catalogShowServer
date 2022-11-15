@@ -401,7 +401,6 @@
     </n-space>
     <!-- 弹窗 -->
     <n-modal
-      v-if="show.modal.show"
       v-model:show="show.modal.show"
       :z-index="999"
       preset="card"
@@ -428,7 +427,12 @@
             height: calc(100vh - 8rem);
           "
         >
-          <VideoShowVime
+          <!-- <VideoShowVime
+            :url="show.source.video.url"
+            :cover="show.source.video.cover"
+          /> -->
+          <VideoShowXiGua
+            :index="show.source.video.index"
             :url="show.source.video.url"
             :cover="show.source.video.cover"
           />
@@ -471,7 +475,8 @@ import {
 } from 'naive-ui'
 import { h, reactive, ref, onMounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import VideoShowVime from '@/views/components/VideoShowVime.vue'
+// import VideoShowVime from '@/views/components/VideoShowVime.vue'
+import VideoShowXiGua from '@/views/components/VideoShowXiGua.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
@@ -504,7 +509,7 @@ const show = reactive<{
   }
   source: {
     pic: { name: string; url: string }
-    video: { name: string; url: string; cover: string }
+    video: { name: string; url: string; cover: string; index: number }
     audio: { name: string; url: string }
   }
 }>({
@@ -515,7 +520,7 @@ const show = reactive<{
   },
   source: {
     pic: { name: '', url: '' },
-    video: { name: '', url: '', cover: '' },
+    video: { name: '', url: '', cover: '', index: 0 },
     audio: { name: '', url: '' },
   },
 })
@@ -534,6 +539,7 @@ function showModal(item: FileInfo) {
         name,
         url,
         cover: baseUrl + '/cover/?file_index=' + item.index,
+        index: item.index,
       }
       show.modal.type = 'video'
       break
