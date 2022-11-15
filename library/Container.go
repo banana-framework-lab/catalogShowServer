@@ -7,6 +7,7 @@ import (
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"net"
 	"path/filepath"
+	"time"
 )
 
 type Container struct {
@@ -20,6 +21,9 @@ type Container struct {
 var containerInstance *Container
 
 var rootSrc = ""
+
+var loadStartTime time.Time
+var loadEndTime time.Time
 
 func GetRootSrc() string {
 	return rootSrc
@@ -64,43 +68,16 @@ func GetContainer() *Container {
 
 func Init() {
 	GetContainer()
-	//containerInstance.CopyFfmpegFile()
+	loadStartTime = time.Now()
 	containerInstance.ShowStartText()
 	containerInstance.GetConfig().Init()
 	containerInstance.GetFile().Init()
 	containerInstance.GetRoute().Init()
 	containerInstance.GetUdp().Init()
 	containerInstance.GetUser().Init()
+	loadEndTime = time.Now()
 	containerInstance.ShowReadyText()
 }
-
-//func (ctn *Container) CopyFfmpegFile() {
-//	fileList := []string{"ffmpeg.exe", "ffplay.exe", "ffprobe.exe"}
-//
-//	for _, file := range fileList {
-//		ffmpegOpen, err := bin.WindowsFfmpeg.Open("ffmpeg/windows/" + file)
-//		if err != nil {
-//			panic(err.Error())
-//		}
-//		defer func(ffmpegOpen fs.File) {
-//			err := ffmpegOpen.Close()
-//			if err != nil {
-//
-//			}
-//		}(ffmpegOpen)
-//		ffmpegOut, err := os.Create(file)
-//		if err != nil {
-//			panic(err.Error())
-//		}
-//		defer func(ffmpegOut *os.File) {
-//			err := ffmpegOut.Close()
-//			if err != nil {
-//
-//			}
-//		}(ffmpegOut)
-//		_, err = io.Copy(ffmpegOut, ffmpegOpen)
-//	}
-//}
 
 func (ctn *Container) GetConfig() *Config {
 	return &ctn.config
@@ -138,6 +115,7 @@ func (ctn *Container) ShowStartText() {
 func (ctn *Container) ShowReadyText() {
 	common.PrintfClean(fmt.Sprintf("CatalogShowServer Ready, %d files in total", len(ctn.file.FileList)))
 	fmt.Println("")
+	fmt.Println(fmt.Sprintf("Compiled successfully in %dms", (loadEndTime.Nanosecond()/1000000)-(loadStartTime.Nanosecond()/1000000)))
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
 	address, err := net.InterfaceAddrs()

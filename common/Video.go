@@ -11,6 +11,18 @@ type VideoS struct{}
 
 var Video = VideoS{}
 
+func (VideoS) GetFfmpeg() ([]byte, error) {
+	cmdName := "./ffmpeg"
+	args := []string{
+		"-version",
+	}
+
+	cmd := exec.Command(cmdName, args...)
+
+	output, err := cmd.CombinedOutput()
+	return output, err
+}
+
 func (VideoS) GetShortcut(videoSrc string, time int) ([]byte, error) {
 	cmdName := "./ffmpeg"
 	args := []string{

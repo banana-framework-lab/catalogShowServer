@@ -34,27 +34,25 @@ type FileSearchMap struct {
 }
 
 var openWithMap = map[string]string{
-	".gif":  "image",
-	".jpg":  "image",
-	".jpeg": "image",
-	".png":  "image",
-	".bmp":  "image",
-	//".tif":  "image",
-	//".tiff": "image",
-	".psd":  "image",
-	".mp4":  "video",
-	".rmvb": "video",
-	".avi":  "video",
-	".mpeg": "video",
-	".mpg":  "video",
-	".m4v":  "video",
-	".mkv":  "video",
-	".mov":  "video",
-	".wmv":  "video",
-	".asx":  "video",
-	".mp3":  "audio",
-	".wav":  "audio",
-	".ogg":  "audio",
+	".gif":  param.OpenWidthImage,
+	".jpg":  param.OpenWidthImage,
+	".jpeg": param.OpenWidthImage,
+	".png":  param.OpenWidthImage,
+	".bmp":  param.OpenWidthImage,
+	".psd":  param.OpenWidthImage,
+	".mp4":  param.OpenWidthVideo,
+	".rmvb": param.OpenWidthVideo,
+	".avi":  param.OpenWidthVideo,
+	".mpeg": param.OpenWidthVideo,
+	".mpg":  param.OpenWidthVideo,
+	".m4v":  param.OpenWidthVideo,
+	".mkv":  param.OpenWidthVideo,
+	".mov":  param.OpenWidthVideo,
+	".wmv":  param.OpenWidthVideo,
+	".asx":  param.OpenWidthVideo,
+	".mp3":  param.OpenWidthAudio,
+	".wav":  param.OpenWidthAudio,
+	".ogg":  param.OpenWidthAudio,
 }
 
 func (f *File) _init() {
@@ -77,7 +75,10 @@ func (f *File) _init() {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
 
-	f.setupFrame()
+	_, err := common.Video.GetFfmpeg()
+	if err == nil {
+		f.setupFrame()
+	}
 
 	common.PrintfClean(fmt.Sprintf("The catalogShowServer file has been read, %d files in total", len(f.FileList)))
 }
@@ -99,7 +100,7 @@ func (f *File) Init() {
 func (f *File) catalogRecurrence(src string) []int {
 	dir, err := os.ReadDir(src)
 	if err != nil {
-		panic("读取路径错误" + err.Error())
+		panic("read src error," + err.Error())
 		return nil
 	}
 	eol := "/"
@@ -240,7 +241,7 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 
 func (f *File) setupFrame() {
 	for index, item := range f.FileList {
-		if item.OpenWidth == "video" && len(f.FileList[index].GetCover()) <= 0 {
+		if item.OpenWidth == param.OpenWidthVideo && len(f.FileList[index].GetCover()) <= 0 {
 			if duration, err := common.Video.GetDuration(item.AbsoluteSrc); err == nil {
 				if durationNumber, err := strconv.ParseFloat(duration, 2); err == nil {
 					if output, err := common.Video.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
@@ -251,9 +252,9 @@ func (f *File) setupFrame() {
 
 			common.PrintfClean(
 				fmt.Sprintf(
-					"CatalogShowServer is setup the cover for : %.40s ... %d%s",
+					"CatalogShowServer is setup the cover for : %.40s ... %.2f%s",
 					f.FileList[index].Name,
-					int((float64(index)/float64(len(f.FileList)))*100.00),
+					float64(index)/float64(len(f.FileList))*100.00,
 					"%",
 				),
 			)

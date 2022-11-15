@@ -1,5 +1,11 @@
 package param
 
+const (
+	OpenWidthImage = "image"
+	OpenWidthVideo = "video"
+	OpenWidthAudio = "audio"
+)
+
 type FileInfo struct {
 	Index       int    `json:"index"`
 	Name        string `json:"name"`

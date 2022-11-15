@@ -569,8 +569,8 @@ const search = reactive<{
   total: 0,
   condition: {
     placeholder: '输入文件名字',
-    fileType: '.mkv',
-    // fileType: null,
+    // fileType: '.mkv',
+    fileType: null,
     catalog: null,
     page: 1,
     rows: 20,

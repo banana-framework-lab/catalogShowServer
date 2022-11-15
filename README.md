@@ -34,11 +34,19 @@ CatalogShowServer can run in the following browsers
 
 ## 🖥️ Usage
 
-+ Copy the build folder in the directory to the folder you need to map
-+ config.toml file is used to set the type of exposed file and network port
-  + The ableFileType field is used to configure the file type 
-  + The web-port field is used to configure the network port 
-+ login.json file is used to configure the login account password ( Strictly follow the json format )
++ Windows
+  + Copy the build folder in the directory to the folder you need to map
+  + config.toml file is used to set the type of exposed file and network port
+    + The ableFileType field is used to configure the file type 
+    + The web-port field is used to configure the network port 
+  + login.json file is used to configure the login account password ( Strictly follow the json format )
++ Linux
+  + The system itself needs to install ffmpeg ( If not, the cover map will be missing )
+  + Copy the build folder in the directory to the folder you need to map
+  + config.toml file is used to set the type of exposed file and network port
+    + The ableFileType field is used to configure the file type
+    + The web-port field is used to configure the network port
+  + login.json file is used to configure the login account password ( Strictly follow the json format )
 
 ## 🙋 Support
 

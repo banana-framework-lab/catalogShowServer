@@ -48,7 +48,7 @@ func (rt *Route) getRouter(url string) (*param.Router, error) {
 	if router, ok := rt.rMap[url]; ok {
 		return router, nil
 	} else {
-		return &param.Router{}, errors.New("找不到路由")
+		return &param.Router{}, errors.New("not found router")
 	}
 }
 

@@ -130,7 +130,7 @@ func (u *Udp) Init() {
 	}
 
 	if outgoingBroadcastIp == "" {
-		panic("找不到网卡ip广播地址")
+		panic("not found network card IP broadcast address")
 	}
 
 	var sErr error
