@@ -75,7 +75,6 @@ func Init() {
 	containerInstance.GetRoute().Init()
 	containerInstance.GetUdp().Init()
 	containerInstance.GetUser().Init()
-	loadEndTime = time.Now()
 	containerInstance.ShowReadyText()
 }
 
@@ -115,7 +114,8 @@ func (ctn *Container) ShowStartText() {
 func (ctn *Container) ShowReadyText() {
 	common.PrintfClean(fmt.Sprintf("CatalogShowServer Ready, %d files in total", len(ctn.file.FileList)))
 	fmt.Println("")
-	fmt.Println(fmt.Sprintf("Compiled successfully in %dms", (loadEndTime.Nanosecond()/1000000)-(loadStartTime.Nanosecond()/1000000)))
+	loadEndTime = time.Now()
+	fmt.Println(fmt.Sprintf("Compiled successfully in %dms", (loadEndTime.UnixMilli())-(loadStartTime.UnixMilli())))
 	fmt.Println("")
 	fmt.Println("Local => http://127.0.0.1:" + ctn.config.Web.Port + "/")
 	address, err := net.InterfaceAddrs()

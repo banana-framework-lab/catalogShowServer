@@ -401,6 +401,7 @@
     </n-space>
     <!-- 弹窗 -->
     <n-modal
+      v-if="show.modal.show"
       v-model:show="show.modal.show"
       :z-index="999"
       preset="card"
@@ -684,6 +685,7 @@ function seeOther() {
 }
 
 function reloadFile() {
+  search.loading = true
   new ReloadFile()
     .request()
     .then((res) => {
@@ -691,7 +693,7 @@ function reloadFile() {
       getCatalogOption()
       getListByCondition()
     })
-    .finally(() => {
+    .catch(() => {
       search.loading = false
     })
 }
