@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-type VideoS struct{}
+type videoS struct{}
 
-var Video = VideoS{}
+var Video = videoS{}
 
-func (VideoS) GetFfmpeg() ([]byte, error) {
+func (v videoS) GetFfmpeg() ([]byte, error) {
 	cmdName := "./ffmpeg"
 	args := []string{
 		"-version",
@@ -23,7 +23,7 @@ func (VideoS) GetFfmpeg() ([]byte, error) {
 	return output, err
 }
 
-func (VideoS) GetShortcut(videoSrc string, time int) ([]byte, error) {
+func (v videoS) GetShortcut(videoSrc string, time int) ([]byte, error) {
 	cmdName := "./ffmpeg"
 	args := []string{
 		"-ss",
@@ -45,7 +45,7 @@ func (VideoS) GetShortcut(videoSrc string, time int) ([]byte, error) {
 	return output, err
 }
 
-func (VideoS) GetDuration(videoSrc string) (string, error) {
+func (v videoS) GetDuration(videoSrc string) (string, error) {
 	cmdName := "./ffprobe"
 	args := []string{
 		"-v",
@@ -62,4 +62,30 @@ func (VideoS) GetDuration(videoSrc string) (string, error) {
 
 	output, err := cmd.CombinedOutput()
 	return strings.Trim(fmt.Sprintf("%s", output), "\r\n"), err
+}
+
+func (v videoS) ConvertStream(videoSrc string) ([]byte, error) {
+	cmdName := "./ffmpeg"
+	args := []string{
+		"-loglevel",
+		"quiet",
+		"-i",
+		videoSrc,
+		"-c",
+		"copy",
+		"-f",
+		"hls",
+		"-hls_time",
+		"2.0",
+		"-hls_list_size",
+		"2",
+		"-hls_flags",
+		"2",
+		"./test.m3u8",
+	}
+
+	cmd := exec.Command(cmdName, args...)
+	println(cmd.String())
+	output, err := cmd.CombinedOutput()
+	return output, err
 }

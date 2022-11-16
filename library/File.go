@@ -108,7 +108,7 @@ func (f *File) catalogRecurrence(src string) []int {
 	fileIndexList = []int{}
 	for _, fileInfo := range dir {
 		if fileInfo.IsDir() {
-			if fileInfo.Name() != "build" {
+			if fileInfo.Name() != "build" || fileInfo.Name() != "." || fileInfo.Name() != ".." {
 				fileIndexList = append(fileIndexList, f.catalogRecurrence(src+eol+fileInfo.Name())...)
 				if len(fileIndexList) > 0 {
 					srcValue := strings.Replace(src, rootSrc, "", 1)

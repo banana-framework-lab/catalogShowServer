@@ -427,15 +427,15 @@
             height: calc(100vh - 8rem);
           "
         >
-          <!-- <VideoShowVime
-            :url="show.source.video.url"
-            :cover="show.source.video.cover"
-          /> -->
-          <VideoShowXiGua
-            :index="show.source.video.index"
+          <VideoShowVime
             :url="show.source.video.url"
             :cover="show.source.video.cover"
           />
+          <!-- <VideoShowXiGua
+            :index="show.source.video.index"
+            :url="show.source.video.url"
+            :cover="show.source.video.cover"
+          /> -->
         </div>
         <div v-if="show.modal.type === 'audio'" class="modal-audio">
           <AudioShowVime :url="show.source.audio.url" />
@@ -475,7 +475,7 @@ import {
 } from 'naive-ui'
 import { h, reactive, ref, onMounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-// import VideoShowVime from '@/views/components/VideoShowVime.vue'
+import VideoShowVime from '@/views/components/VideoShowVime.vue'
 import VideoShowXiGua from '@/views/components/VideoShowXiGua.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
