@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -110,4 +111,16 @@ func GetCurrentPath() (string, error) {
 		return "", errors.New(`error: Can't find "/" or "\"`)
 	}
 	return path[0 : i+1], nil
+}
+
+func RegFind(buf string, regStr string) []string {
+	ret := make([]string, 0)
+	re, _ := regexp.Compile(regStr)
+	res := re.FindAllStringSubmatch(buf, -1)
+	for _, v := range res {
+		for _, v1 := range v {
+			ret = append(ret, v1)
+		}
+	}
+	return ret
 }

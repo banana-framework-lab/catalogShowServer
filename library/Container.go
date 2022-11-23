@@ -16,6 +16,7 @@ type Container struct {
 	file   File
 	route  Route
 	udp    Udp
+	utsp   Utsp
 }
 
 var containerInstance *Container
@@ -67,15 +68,16 @@ func GetContainer() *Container {
 }
 
 func Init() {
-	GetContainer()
-	loadStartTime = time.Now()
-	containerInstance.ShowStartText()
-	containerInstance.GetConfig().Init()
-	containerInstance.GetFile().Init()
-	containerInstance.GetRoute().Init()
-	containerInstance.GetUdp().Init()
-	containerInstance.GetUser().Init()
-	containerInstance.ShowReadyText()
+	//GetContainer()
+	//loadStartTime = time.Now()
+	//containerInstance.ShowStartText()
+	//containerInstance.GetConfig().Init()
+	//containerInstance.GetFile().Init()
+	//containerInstance.GetRoute().Init()
+	//containerInstance.GetUdp().Init()
+	//containerInstance.GetUser().Init()
+	containerInstance.GetUtsp().Init()
+	//containerInstance.ShowReadyText()
 }
 
 func (ctn *Container) GetConfig() *Config {
@@ -96,6 +98,10 @@ func (ctn *Container) GetRoute() *Route {
 
 func (ctn *Container) GetUdp() *Udp {
 	return &ctn.udp
+}
+
+func (ctn *Container) GetUtsp() *Utsp {
+	return &ctn.utsp
 }
 
 func (ctn *Container) ShowStartText() {

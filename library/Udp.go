@@ -11,14 +11,14 @@ import (
 )
 
 type Udp struct {
-	IpList        []string
-	IpInfoList    []IpInfo
-	ShowStatus    bool
-	BroadcastBody BroadcastBody
-	NeighborList  map[string][]Neighbor
+	IpList       []string
+	IpInfoList   []IpInfo
+	ShowStatus   bool
+	Broadcast    Broadcast
+	NeighborList map[string][]Neighbor
 }
 
-type BroadcastBody struct {
+type Broadcast struct {
 	Port       int
 	LocalAddr  net.UDPAddr
 	RemoteAddr net.UDPAddr
@@ -134,23 +134,23 @@ func (u *Udp) Init() {
 	}
 
 	var sErr error
-	u.BroadcastBody.Port, sErr = strconv.Atoi(containerInstance.config.Udp.Port)
+	u.Broadcast.Port, sErr = strconv.Atoi(containerInstance.config.Udp.Port)
 	if sErr != nil {
 		panic(sErr.Error())
 	}
 
-	u.BroadcastBody.LocalAddr = net.UDPAddr{
+	u.Broadcast.LocalAddr = net.UDPAddr{
 		IP:   net.IPv4(0, 0, 0, 0),
-		Port: u.BroadcastBody.Port,
+		Port: u.Broadcast.Port,
 	}
 
-	u.BroadcastBody.RemoteAddr = net.UDPAddr{
+	u.Broadcast.RemoteAddr = net.UDPAddr{
 		IP:   net.ParseIP(outgoingBroadcastIp),
-		Port: u.BroadcastBody.Port,
+		Port: u.Broadcast.Port,
 	}
 
 	var udpErr error
-	u.BroadcastBody.Connect, udpErr = net.DialUDP("udp", &u.BroadcastBody.LocalAddr, &u.BroadcastBody.RemoteAddr)
+	u.Broadcast.Connect, udpErr = net.DialUDP("udp", &u.Broadcast.LocalAddr, &u.Broadcast.RemoteAddr)
 
 	if udpErr != nil {
 		panic(udpErr.Error())
@@ -163,13 +163,13 @@ func (u *Udp) Init() {
 func (u *Udp) BroadcastStatus() {
 	message := BroadcastMessage{
 		ShowStatus: u.ShowStatus,
-		WebPort:    strconv.Itoa(u.BroadcastBody.Port),
+		WebPort:    strconv.Itoa(u.Broadcast.Port),
 	}
 	jsons, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = u.BroadcastBody.Connect.Write(jsons)
+	_, err = u.Broadcast.Connect.Write(jsons)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -185,7 +185,7 @@ func (u *Udp) loopBroadcast() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		_, err = u.BroadcastBody.Connect.Write(jsons)
+		_, err = u.Broadcast.Connect.Write(jsons)
 		if err != nil {
 			fmt.Println(err)
 		}
