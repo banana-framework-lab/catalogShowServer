@@ -68,16 +68,16 @@ func GetContainer() *Container {
 }
 
 func Init() {
-	//GetContainer()
-	//loadStartTime = time.Now()
-	//containerInstance.ShowStartText()
-	//containerInstance.GetConfig().Init()
-	//containerInstance.GetFile().Init()
-	//containerInstance.GetRoute().Init()
-	//containerInstance.GetUdp().Init()
-	//containerInstance.GetUser().Init()
-	containerInstance.GetUtsp().Init()
-	//containerInstance.ShowReadyText()
+	GetContainer()
+	loadStartTime = time.Now()
+	containerInstance.ShowStartText()
+	containerInstance.GetConfig().Init()
+	containerInstance.GetFile().Init()
+	containerInstance.GetRoute().Init()
+	containerInstance.GetUdp().Init()
+	containerInstance.GetUser().Init()
+	//containerInstance.GetUtsp().Init()
+	containerInstance.ShowReadyText()
 }
 
 func (ctn *Container) GetConfig() *Config {

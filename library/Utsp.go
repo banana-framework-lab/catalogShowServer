@@ -12,7 +12,8 @@ import (
 )
 
 type Utsp struct {
-	ClientMap map[string]*Client
+	PusherMap map[string]*Client
+	PlayerMap map[string]*Client
 	Port      string
 }
 
@@ -56,7 +57,7 @@ func (u *Utsp) handle(connect *net.Conn) {
 		Connect: connect,
 		Session: fmt.Sprintf("%x", md5.Sum([]byte(strconv.FormatInt(time.Now().Unix(), 10)))),
 	}
-	u.ClientMap[(*connect).RemoteAddr().String()] = &client
+	u.PusherMap[(*connect).RemoteAddr().String()] = &client
 
 	buf := make([]byte, 2048)
 	for {
@@ -93,16 +94,18 @@ func (u *Utsp) handle(connect *net.Conn) {
 			break
 		case "DESCRIBE":
 			client.Flag = string(buf[0:13])
+			mErr = u.describe(client)
 			break
 		case "PLAY":
 			client.Flag = string(buf[0:9])
+			mErr = u.play(client)
 			break
 		default:
 			mErr = errors.New("invalid function")
 			break
 		}
 		if mErr != nil {
-			delete(u.ClientMap, (*(client.Connect)).RemoteAddr().String())
+			delete(u.PusherMap, (*(client.Connect)).RemoteAddr().String())
 		}
 	}
 }
@@ -219,5 +222,44 @@ func (u *Utsp) accept(client Client) error {
 	if len(dataBytes) > 0 {
 		client.ChannelData <- dataBytes
 	}
+	return nil
+}
+
+func (u *Utsp) describe(client Client) error {
+	strBuf := string(client.LastBuf)
+	post := common.RegFind(strBuf, "^DESCRIBE rtsp://[\\w\\W]+?:[0-9]+/([\\w\\W]+?) RTSP/[0-9.]+[\\w\\W]+?CSeq:[\\s]*([0-9]+)")
+
+	if len(post) != 3 {
+		return errors.New("not rtsp format")
+	}
+
+	client.Type = ClientPlayType
+	v, ok := u.PusherMap[post[1]]
+
+	if ok {
+		_, err := (*(client.Connect)).Write([]byte(fmt.Sprintf("RTSP/1.0 200 OK\nSession: %s\nContent-Length: %d\nCSeq: %s\n\n%s", client.Session, len(v.Sdp), post[2], v.Sdp))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *Utsp) play(client Client) error {
+	strBuf := string(client.LastBuf)
+	post := common.RegFind(strBuf, "^PLAY[\\w\\W]+?CSeq:[\\s]*([0-9]+)[\\w\\W]+")
+	if len(post) != 2 {
+		return errors.New("not rtsp format")
+	}
+	_, ok := u.PusherMap[client.Channel]
+	if ok {
+		u.PlayerMap[(*(client.Connect)).RemoteAddr().String()] = &client
+		_, err := (*(client.Connect)).Write([]byte(fmt.Sprintf("RTSP/1.0 200 OK\nSession: %s\nRange: npt=0.000-\nCSeq: %s\n\n", client.Session, post[1])))
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
