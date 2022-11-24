@@ -94,10 +94,10 @@ func (u *Utsp) handle(c *net.Conn) {
 			mErr = u.record(&client)
 			break
 		case "DESCRIBE":
-			mErr = u.describe(client)
+			mErr = u.describe(&client)
 			break
 		case "PLAY":
-			mErr = u.play(client)
+			mErr = u.play(&client)
 			break
 		default:
 			mErr = errors.New("invalid function")
