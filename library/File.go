@@ -1,11 +1,14 @@
 package library
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/common"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 	"github.com/banana-framework-lab/catalogShowServer/web"
 	"github.com/vearutop/statigz"
+	"image"
+	"image/jpeg"
 	"io/fs"
 	"log"
 	"net/http"
@@ -242,10 +245,59 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 func (f *File) setupFrame() {
 	for index, item := range f.FileList {
 		if item.OpenWidth == param.OpenWidthVideo && len(f.FileList[index].GetCover()) <= 0 {
-			if duration, err := common.Video.GetDuration(item.AbsoluteSrc); err == nil {
-				if durationNumber, err := strconv.ParseFloat(duration, 2); err == nil {
-					if output, err := common.Video.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
-						f.FileList[index].SetCover(output)
+			nameArray := strings.Split(item.Name, ".")
+			nameArray = nameArray[0 : len(nameArray)-1]
+			picName := strings.Join(nameArray, ".")
+			picSrc := rootSrc + "/build/runtime/shortcut_" + picName + ".jpg"
+			_, err := os.Lstat(picSrc)
+			if err == nil {
+				coverReadFile, coverReadErr := os.ReadFile(picSrc)
+				if coverReadErr == nil {
+					f.FileList[index].SetCover(coverReadFile)
+				} else {
+					fmt.Println(coverReadErr.Error())
+				}
+			} else {
+				if duration, err := common.Video.GetDuration(item.AbsoluteSrc); err == nil {
+					if durationNumber, err := strconv.ParseFloat(duration, 2); err == nil {
+						if output, err := common.Video.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
+							f.FileList[index].SetCover(output)
+							coverOut, coverIoErr := os.Create(picSrc)
+
+							if coverIoErr != nil {
+								common.PrintfClean(
+									fmt.Sprintf(
+										"%s create file fail : %s",
+										picSrc,
+										coverIoErr.Error(),
+									),
+								)
+							} else {
+								img, _, imgDecodeErr := image.Decode(bytes.NewReader(output))
+								if imgDecodeErr != nil {
+									common.PrintfClean(
+										fmt.Sprintf(
+											"%s decode fail: %s",
+											picSrc,
+											imgDecodeErr.Error(),
+										),
+									)
+								}
+								var opts jpeg.Options
+								opts.Quality = 1000
+								saveErr := jpeg.Encode(coverOut, img, &opts)
+								if saveErr != nil {
+									common.PrintfClean(
+										fmt.Sprintf(
+											"%s save fail: %s",
+											picSrc,
+											saveErr.Error(),
+										),
+									)
+								}
+							}
+							_ = coverOut.Close()
+						}
 					}
 				}
 			}

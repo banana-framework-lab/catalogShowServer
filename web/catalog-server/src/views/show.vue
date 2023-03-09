@@ -242,6 +242,7 @@
                             v-if="item.open_width === 'image'"
                             object-fit="contain"
                             lazy
+                            :preview-disabled="true"
                             :src="baseUrl + item.url"
                           />
                           <div v-if="item.open_width === 'video'">
@@ -476,7 +477,6 @@ import {
 import { h, reactive, ref, onMounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
 import VideoShowVime from '@/views/components/VideoShowVime.vue'
-import VideoShowXiGua from '@/views/components/VideoShowXiGua.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
