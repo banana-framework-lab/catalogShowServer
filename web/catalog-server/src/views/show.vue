@@ -244,6 +244,7 @@
                             lazy
                             :preview-disabled="true"
                             :src="baseUrl + item.url"
+                            @click="showModal(item)"
                           />
                           <div v-if="item.open_width === 'video'">
                             <div

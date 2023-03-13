@@ -1,5 +1,9 @@
 # Editor directories and files
 .idea
+.idea/
+ffmpeg.exe
+ffprobe.exe
+ffplay.exe
 .vscode
 *.suo
 *.ntvs*
@@ -15,4 +19,3 @@ repository/**/
 .env.local
 .env.*.local
 
-tmp
