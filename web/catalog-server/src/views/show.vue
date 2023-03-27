@@ -496,7 +496,7 @@ import {
   SelectGroupOption,
   useMessage,
 } from 'naive-ui'
-import { h, reactive, ref, onMounted, nextTick } from 'vue'
+import { h, reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
 import VideoShowVime from '@/views/components/VideoShowVime.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
@@ -628,16 +628,15 @@ function searchFunction() {
 
   getListByCondition(1)
 }
+
+function popStareFunction() {
+  show.modal.show = false
+}
+
 onMounted(() => {
   if (window.history && (window.history.pushState || false)) {
     history.pushState(null, '', document.URL)
-    window.addEventListener(
-      'popstate',
-      () => {
-        show.modal.show = false
-      },
-      false
-    )
+    window.addEventListener('popstate', popStareFunction, false)
   }
 
   search.condition.name = Cookies.get('search.name') || search.condition.name
@@ -648,6 +647,10 @@ onMounted(() => {
   console.log(Cookies.get('search.page'))
   search.condition.page = Number(Cookies.get('search.page') || 1)
   getListByCondition(search.condition.page)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', popStareFunction, false)
 })
 
 function initHistory() {
