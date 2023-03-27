@@ -79,9 +79,9 @@ export default { name: 'Show' }
 import { GlassesOutline, Glasses } from '@vicons/ionicons5'
 import { UserAstronaut } from '@vicons/fa'
 import { Keyboard12324Filled } from '@vicons/fluent'
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Login } from '@/api/login'
-import { setToken } from '@/util/token'
+import { setToken, isLogin } from '@/util/token'
 import { NForm, FormRules, FormItemRule } from 'naive-ui'
 import router from '@/router'
 
@@ -116,6 +116,21 @@ const rules: FormRules = {
     },
   ],
 }
+
+const isLoginStatus = computed(() => {
+  return isLogin()
+})
+
+watch(
+  isLoginStatus,
+  (value) => {
+    if (value && value !== '[]') {
+      router.push('/')
+    }
+  },
+  { immediate: true }
+)
+
 function login(e: MouseEvent) {
   e.preventDefault()
   formRef.value?.validate((errors) => {

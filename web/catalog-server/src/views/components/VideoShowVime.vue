@@ -55,7 +55,6 @@ import {
   TimeProgress,
   Spinner,
 } from '@vime/vue-next' // https://vimejs.com/
-import { defineProps } from 'vue'
 
 const props = defineProps({
   url: {

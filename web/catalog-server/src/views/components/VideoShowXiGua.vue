@@ -7,7 +7,7 @@
 export default { name: 'VideoShow' }
 </script>
 <script setup lang="ts">
-import { defineProps, onMounted, ref, nextTick } from 'vue'
+import { onMounted, ref, nextTick } from 'vue'
 import Player from 'xgplayer'
 
 const props = defineProps({

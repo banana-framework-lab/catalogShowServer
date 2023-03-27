@@ -7,12 +7,12 @@ const routes = <RouteRecordRaw[]>[
     name: 'login',
     component: () => import('@/views/login.vue'),
   },
-  // {
-  //   path: '/404',npm
-  //   name: '404',
-  //   component: () => import('@/views/404.vue'),
-  //   meta: { hidden: true },
-  // },
+  {
+    path: '/404',
+    name: '404',
+    component: () => import('@/views/404.vue'),
+    meta: { hidden: true },
+  },
   {
     path: '/show',
     name: 'show',

@@ -78,7 +78,7 @@ func (f *File) _init() {
 		f.SearchOption.CatalogList = append(f.SearchOption.CatalogList, key)
 	}
 
-	_, err := common.Video.GetFfmpeg()
+	_, err := common.Ffmpeg.GetFfmpeg()
 	if err == nil {
 		f.setupFrame()
 	}
@@ -124,7 +124,7 @@ func (f *File) catalogRecurrence(src string) []int {
 		} else {
 			fileType := path.Ext(fileInfo.Name())
 			fileType = strings.Trim(fileType, " ")
-			if able, ok := containerInstance.config.AbleFileTypeMap[fileType]; ok && able {
+			if able, ok := containerInstance.config.AbleFileTypeMap[strings.ToLower(fileType)]; ok && able {
 				if sAble, sOk := containerInstance.config.SystemAbleFileTypeMap[fileType]; sOk && sAble {
 					srcValue := strings.Replace(src, rootSrc, "", 1)
 					if srcValue == "" {
@@ -166,6 +166,20 @@ func (f *File) catalogRecurrence(src string) []int {
 }
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+
+	//rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
+	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
+	// 必须，设置服务器支持的所有跨域请求的方法
+	rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	// 服务器支持的所有头信息字段，不限于浏览器在"预检"中请求的字段
+	rw.Header().Set("Access-Control-Allow-Headers", "content-type")
+	// 可选，设置XMLHttpRequest的响应对象能拿到的额外字段
+	rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
+	// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
+	rw.Header().Set("Access-Control-Allow-Credentials", "true")
+
 	if containerInstance.udp.ShowStatus {
 		f.onRequest(rw, req)
 	} else {
@@ -258,9 +272,9 @@ func (f *File) setupFrame() {
 					fmt.Println(coverReadErr.Error())
 				}
 			} else {
-				if duration, err := common.Video.GetDuration(item.AbsoluteSrc); err == nil {
+				if duration, err := common.Ffmpeg.GetDuration(item.AbsoluteSrc); err == nil {
 					if durationNumber, err := strconv.ParseFloat(duration, 2); err == nil {
-						if output, err := common.Video.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
+						if output, err := common.Ffmpeg.GetShortcut(item.AbsoluteSrc, int(durationNumber)/2); err == nil {
 							f.FileList[index].SetCover(output)
 							coverOut, coverIoErr := os.Create(picSrc)
 

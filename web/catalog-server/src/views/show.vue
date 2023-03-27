@@ -115,7 +115,12 @@
               filterable
               :options="fileTypeOption"
               placeholder="类型"
-              @update:value="getListByCondition(1)"
+              @update:value="
+                () => {
+                  setFileType(search.condition.fileType)
+                  getListByCondition(1)
+                }
+              "
             />
             <n-input
               v-model:value="search.condition.name"
@@ -124,6 +129,7 @@
               :placeholder="search.condition.placeholder"
               @change="
                 () => {
+                  setFileName(search.condition.name)
                   search.condition.name
                     ? (search.condition.placeholder = search.condition.name)
                     : ''
@@ -174,7 +180,12 @@
             filterable
             :options="catalogOption"
             placeholder="文件目录"
-            @update:value="getListByCondition(1)"
+            @update:value="
+              () => {
+                setFileCatalog(search.condition.catalog)
+                getListByCondition(1)
+              }
+            "
           />
         </n-layout-content>
         <n-layout-content
@@ -392,7 +403,11 @@
                 :page="search.condition.page"
                 :page-size="search.condition.rows"
                 :page-slot="5"
-                @update:page="(page:number)=>{getListByCondition(page)}"
+                @update:page="
+                  (page:number)=>{
+                    setPage(page)
+                    getListByCondition(page)
+                  }"
               >
                 <template #goto> 跳转 </template>
               </n-pagination>
@@ -456,6 +471,12 @@ import { IosAirplane } from '@vicons/ionicons4'
 import { RefreshCircleOutline, Reload } from '@vicons/ionicons5'
 import { AppstoreOutlined, AlignLeftOutlined } from '@vicons/antd'
 
+import {
+  setFileType,
+  setFileName,
+  setPage,
+  setFileCatalog,
+} from '@/util/system'
 import { Eye, PlayCircle } from '@vicons/fa'
 import { Network4, UpdateNow } from '@vicons/carbon'
 import { UserCircle } from '@vicons/tabler'
@@ -608,7 +629,14 @@ function searchFunction() {
   getListByCondition(1)
 }
 onMounted(() => {
-  searchFunction()
+  search.condition.name = Cookies.get('search.name') || search.condition.name
+  search.condition.fileType =
+    Cookies.get('search.file_type') || search.condition.fileType
+  search.condition.catalog =
+    Cookies.get('search.catalog') || search.condition.catalog
+  console.log(Cookies.get('search.page'))
+  search.condition.page = Number(Cookies.get('search.page') || 1)
+  getListByCondition(search.condition.page)
 })
 
 function initHistory() {
@@ -735,7 +763,7 @@ const loopGetNeighborList = setInterval(() => {
 
 onBeforeRouteLeave(
   (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
-    if (to.path == '/login') {
+    if (['/login', '/404'].indexOf(to.path) >= 0) {
       clearInterval(loopGetNeighborList)
     }
   }
