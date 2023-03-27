@@ -629,6 +629,17 @@ function searchFunction() {
   getListByCondition(1)
 }
 onMounted(() => {
+  if (window.history && (window.history.pushState || false)) {
+    history.pushState(null, '', document.URL)
+    window.addEventListener(
+      'popstate',
+      () => {
+        show.modal.show = false
+      },
+      false
+    )
+  }
+
   search.condition.name = Cookies.get('search.name') || search.condition.name
   search.condition.fileType =
     Cookies.get('search.file_type') || search.condition.fileType

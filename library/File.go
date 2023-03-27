@@ -111,7 +111,7 @@ func (f *File) catalogRecurrence(src string) []int {
 	fileIndexList = []int{}
 	for _, fileInfo := range dir {
 		if fileInfo.IsDir() {
-			if fileInfo.Name() != "build" || fileInfo.Name() != "." || fileInfo.Name() != ".." {
+			if fileInfo.Name() != "build" && fileInfo.Name() != "." && fileInfo.Name() != ".." {
 				fileIndexList = append(fileIndexList, f.catalogRecurrence(src+eol+fileInfo.Name())...)
 				if len(fileIndexList) > 0 {
 					srcValue := strings.Replace(src, rootSrc, "", 1)
@@ -167,18 +167,18 @@ func (f *File) catalogRecurrence(src string) []int {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
-	//rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
-	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-	rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
-	// 必须，设置服务器支持的所有跨域请求的方法
-	rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	// 服务器支持的所有头信息字段，不限于浏览器在"预检"中请求的字段
-	rw.Header().Set("Access-Control-Allow-Headers", "content-type")
-	// 可选，设置XMLHttpRequest的响应对象能拿到的额外字段
-	rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
-	// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
-	rw.Header().Set("Access-Control-Allow-Credentials", "true")
+	////rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
+	//rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	//rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	//rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
+	//// 必须，设置服务器支持的所有跨域请求的方法
+	//rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	//// 服务器支持的所有头信息字段，不限于浏览器在"预检"中请求的字段
+	//rw.Header().Set("Access-Control-Allow-Headers", "content-type")
+	//// 可选，设置XMLHttpRequest的响应对象能拿到的额外字段
+	//rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
+	//// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
+	//rw.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if containerInstance.udp.ShowStatus {
 		f.onRequest(rw, req)
@@ -257,6 +257,14 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (f *File) setupFrame() {
+	exists, existsErr := common.PathExists(rootSrc + "/build/runtime/")
+	if existsErr != nil || !exists {
+		err := os.Mkdir(rootSrc+"/build/runtime/", 755)
+		if err != nil {
+			fmt.Printf("create dir fail, set frame fail too")
+			return
+		}
+	}
 	for index, item := range f.FileList {
 		if item.OpenWidth == param.OpenWidthVideo && len(f.FileList[index].GetCover()) <= 0 {
 			nameArray := strings.Split(item.Name, ".")
@@ -318,7 +326,7 @@ func (f *File) setupFrame() {
 
 			common.PrintfClean(
 				fmt.Sprintf(
-					"CatalogShowServer is setup the cover for : %.40s ... %.2f%s",
+					"CatalogShowServer is setup the cover for : %.30s ... %.2f%s",
 					f.FileList[index].Name,
 					float64(index)/float64(len(f.FileList))*100.00,
 					"%",
