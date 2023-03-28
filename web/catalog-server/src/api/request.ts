@@ -49,7 +49,7 @@ service.interceptors.response.use(
     }
   },
   (error: AxiosError) => {
-    console.log('err' + error)
+    console.log('err:' + error)
     window['$message'].error(error.message)
     router.push('/404')
     return Promise.reject(error)

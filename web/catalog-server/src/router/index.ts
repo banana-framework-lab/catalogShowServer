@@ -1,4 +1,5 @@
 import { RouteRecordRaw, createRouter, createWebHashHistory } from 'vue-router'
+import vue404 from '@/views/404.vue'
 
 const routes = <RouteRecordRaw[]>[
   { path: '/', redirect: '/show' },
@@ -10,8 +11,7 @@ const routes = <RouteRecordRaw[]>[
   {
     path: '/404',
     name: '404',
-    component: () => import('@/views/404.vue'),
-    meta: { hidden: true },
+    component: vue404,
   },
   {
     path: '/show',

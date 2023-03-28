@@ -631,6 +631,7 @@ function searchFunction() {
 
 function popStareFunction() {
   show.modal.show = false
+  history.pushState(null, '', document.URL)
 }
 
 onMounted(() => {
@@ -644,7 +645,6 @@ onMounted(() => {
     Cookies.get('search.file_type') || search.condition.fileType
   search.condition.catalog =
     Cookies.get('search.catalog') || search.condition.catalog
-  console.log(Cookies.get('search.page'))
   search.condition.page = Number(Cookies.get('search.page') || 1)
   getListByCondition(search.condition.page)
 })
