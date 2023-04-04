@@ -522,8 +522,8 @@ video::-webkit-media-controls {
   display: none !important;
 }
 
-.n-slider .n-slider--with-mark {
-  margin: 0;
+.n-slider--with-mark {
+  margin: 0 !important;
 }
 
 .n-slider {
