@@ -340,7 +340,7 @@ const player = ref({
   srcIndex: 0,
   srcList: <string[]>[''],
   durationSecList: <{ start: number; end: number }[]>[],
-  transCodeStep: 30,
+  transCodeStep: 60,
 })
 
 watch(
@@ -529,5 +529,8 @@ video::-webkit-media-controls {
 .n-slider {
   --n-fill-color: #63e2b7 !important;
   --n-dot-color: #ffffff !important;
+  --n-dot-height: 2px !important;
+  --n-dot-width: 2px !important;
+  --n-dot-border-active: 0px solid !important;
 }
 </style>
