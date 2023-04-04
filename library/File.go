@@ -167,18 +167,18 @@ func (f *File) catalogRecurrence(src string) []int {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
-	////rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
-	//rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	//rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-	//rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
-	//// 必须，设置服务器支持的所有跨域请求的方法
-	//rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-	//// 服务器支持的所有头信息字段，不限于浏览器在"预检"中请求的字段
-	//rw.Header().Set("Access-Control-Allow-Headers", "content-type")
-	//// 可选，设置XMLHttpRequest的响应对象能拿到的额外字段
-	//rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
-	//// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
-	//rw.Header().Set("Access-Control-Allow-Credentials", "true")
+	//rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
+	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
+	// 必须，设置服务器支持的所有跨域请求的方法
+	rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+	// 服务器支持的所有头信息字段，不限于浏览器在"预检"中请求的字段
+	rw.Header().Set("Access-Control-Allow-Headers", "content-type")
+	// 可选，设置XMLHttpRequest的响应对象能拿到的额外字段
+	rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
+	// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
+	rw.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if containerInstance.udp.ShowStatus {
 		f.onRequest(rw, req)
@@ -251,8 +251,8 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 				fmt.Printf("%v \n", err)
 			}
 		}(file)
-
 		http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
+		//http.ServeFile(rw, req, filepath.Join(rootSrc, fileUrl))
 	}
 }
 

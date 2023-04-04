@@ -157,7 +157,7 @@ func (u *Udp) Init() {
 	}
 
 	go u.receive()
-	go u.loopBroadcast()
+	//go u.loopBroadcast()
 }
 
 func (u *Udp) BroadcastStatus() {

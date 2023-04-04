@@ -17,6 +17,7 @@
       "@typescript-eslint/no-explicit-any": ["off"]
     },
     "env": {
-      "vue/setup-compiler-macros": true
+      "vue/setup-compiler-macros": true,
+      "node": true
     }
   }
