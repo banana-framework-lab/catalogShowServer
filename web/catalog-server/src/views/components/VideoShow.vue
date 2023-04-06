@@ -1,22 +1,33 @@
 <template>
   <div id="playerBody" ref="playerBodyRef" style="position: relative">
     <div id="playerContent" ref="playerContentRef">
-      <div id="playerVideo">
-        <n-spin :show="player.videoLoading">
-          <video
-            ref="videoRef"
-            style="width: 100%; height: 100%; object-fit: fill"
-            controls="false"
-            :src="player.srcList[player.srcIndex]"
-            :autoplay="player.autoplay"
-            :muted="player.muted"
-            :loop="player.loop"
-            :volume="player.volume / 100"
-            @timeupdate="_timeUpdate()"
-            @ended="_ended()"
-            @canplay="_canPlay()"
-          ></video>
-        </n-spin>
+      <div id="playerVideo" v-loading="player.videoLoading">
+        <!-- <n-spin :show="player.videoLoading"> -->
+        <video
+          ref="videoRef"
+          style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 0;
+            height: 100%;
+            user-select: none;
+            border-radius: inherit;
+            vertical-align: middle;
+            width: 100%;
+            outline: 0;
+          "
+          controls="false"
+          :src="player.srcList[player.srcIndex]"
+          :autoplay="player.autoplay"
+          :muted="player.muted"
+          :loop="player.loop"
+          :volume="player.volume / 100"
+          @timeupdate="_timeUpdate()"
+          @ended="_ended()"
+          @canplay="_canPlay()"
+        ></video>
+        <!-- </n-spin> -->
       </div>
     </div>
     <div
@@ -143,7 +154,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue'
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue'
 export default defineComponent({
   name: 'VideoShow',
 })
@@ -254,10 +265,12 @@ function _doTimechange(newTime: number) {
 }
 
 function _timeUpdate() {
-  player.value.current =
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    videoRef.value!.currentTime +
-    player.value.srcIndex * player.value.transCodeStep
+  if (player.value) {
+    player.value.current =
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      videoRef.value!.currentTime +
+      player.value.srcIndex * player.value.transCodeStep
+  }
 }
 
 function _canPlay() {
@@ -306,8 +319,7 @@ function _fullScreen() {
       allControllerRef.value!.style.height = window.screen.height + 'px'
       player.value.fullScreen = !player.value.fullScreen
       playerBodyRef.value?.requestFullscreen()
-      // playerBodyRef.value.style.transform =
-      //   'rotate(-90deg) translate(-50%, 50%)'
+      document.body.style.transform = 'rotate(-90deg) translate(-50%, 50%)'
     }
   } else {
     document.exitFullscreen()
@@ -316,7 +328,15 @@ function _fullScreen() {
 
 document.addEventListener('fullscreenchange', (event) => {
   if (!document.fullscreenElement) {
+    const height = (Number(playerContentRef.value?.clientWidth) * 9) / 16 + 'px'
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    playerBodyRef.value!.style.height = height
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    playerContentRef.value!.style.height = height
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    allControllerRef.value!.style.height = height
     player.value.fullScreen = !player.value.fullScreen
+    document.body.style.transform = ''
   }
 })
 
@@ -472,8 +492,11 @@ async function doTransCode() {
       if (player.value.srcList[0] && Number(player.value.srcIndex) === 0) {
         player.value.videoLoading = false
         player.value.contentLoading = false
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        videoRef.value!.poster = player.value.coverUrl
+        videoRef.value
+        if (videoRef.value) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          videoRef.value!.poster = player.value.coverUrl
+        }
       }
     }
   }
@@ -499,8 +522,13 @@ transcode().catch((e) => {
 
 #playerVideo {
   width: 100%;
-  text-align: center;
+  display: flex;
   overflow: hidden;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 #controller {
@@ -532,7 +560,7 @@ transcode().catch((e) => {
   width: 100%;
   height: 35px;
   display: none;
-  background-color: rgb(102, 102, 102);
+  background-color: rgb(102, 102, 102, 0.8);
   transition: all 0.3s ease-in;
   opacity: 1;
 }

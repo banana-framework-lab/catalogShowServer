@@ -3,7 +3,11 @@
   <div v-if="isShow" class="loading-box">
     <div class="mask" :style="{ background: maskBackground }"></div>
     <div class="loading-content-box">
-      <n-spin :theme-overrides="spinThemeOverrides" size="small" />
+      <n-spin
+        :theme-overrides="spinThemeOverrides"
+        size="small"
+        stroke="#63e2b7"
+      />
       <div :style="{ color: textColor }" class="tip">{{ tip }}</div>
     </div>
   </div>
@@ -35,7 +39,7 @@ const prop = defineProps({
   textColor: {
     type: String,
     default() {
-      return 'rgba(255, 255, 255, 1)'
+      return '#63e2b7'
     },
   },
 })
