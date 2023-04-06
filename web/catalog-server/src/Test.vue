@@ -14,8 +14,12 @@
         :y-offset="60"
         :rotate="-15"
       />
-      <router-view />
     </n-message-provider>
+    <div style="width: 100%">
+      <VideoShow
+        url="http://192.168.5.63:9999/api/file/?file=/AVI/TEST5.avi"
+      ></VideoShow>
+    </div>
   </n-config-provider>
 </template>
 
@@ -28,4 +32,5 @@ export default defineComponent({
 <script setup lang="ts">
 import Message from '@/components/Message.vue'
 import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
+import VideoShow from '@/views/components/VideoShow.vue'
 </script>

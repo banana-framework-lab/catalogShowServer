@@ -435,24 +435,12 @@
           object-fit="scale-down"
           :src="show.source.pic.url"
         />
-        <div
-          v-if="show.modal.type === 'video'"
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: calc(100vh - 8rem);
-          "
-        >
-          <VideoShowVime
+        <div v-if="show.modal.type === 'video'">
+          <VideoShow
+            style="width: 100%"
             :url="show.source.video.url"
             :cover="show.source.video.cover"
           />
-          <!-- <VideoShowXiGua
-            :index="show.source.video.index"
-            :url="show.source.video.url"
-            :cover="show.source.video.cover"
-          /> -->
         </div>
         <div v-if="show.modal.type === 'audio'" class="modal-audio">
           <AudioShowVime :url="show.source.audio.url" />
@@ -498,7 +486,8 @@ import {
 } from 'naive-ui'
 import { h, reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import VideoShowVime from '@/views/components/VideoShowVime.vue'
+import VideoShow from '@/views/components/VideoShow.vue'
+// import VideoShow from '@/views/components/VideoShow.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'

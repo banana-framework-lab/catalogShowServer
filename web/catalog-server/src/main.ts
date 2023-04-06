@@ -5,4 +5,10 @@ import App from './App.vue'
 import naive from 'naive-ui'
 import router from '@/router'
 
-createApp(App).use(router).use(naive).mount('#app')
+import { vLoading } from '@/directive/loading/index'
+
+createApp(App)
+  .use(router)
+  .use(naive)
+  .directive('loading', vLoading)
+  .mount('#app')
