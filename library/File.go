@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type File struct {
@@ -96,6 +95,7 @@ func (f *File) Init() {
 	http.Handle("/file/", f)
 	http.Handle("/cover/", f)
 	http.Handle("/static/", f)
+	http.Handle("/resource/", f)
 	http.Handle("/favicon.ico", f)
 
 }
@@ -167,7 +167,6 @@ func (f *File) catalogRecurrence(src string) []int {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
-	//rw.Header().Set("Content-Type", "video/mp4")        //允许访问所有域
 	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 	rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
@@ -179,6 +178,7 @@ func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Access-Control-Expose-Headers", "Access-Control-Allow-Headers, Token")
 	// 可选，是否允许后续请求携带认证信息Cookir，该值只能是true，不需要则不设置
 	rw.Header().Set("Access-Control-Allow-Credentials", "true")
+	rw.Header().Set("Access-Control-Expose-Headers", "Content-Range")
 
 	if containerInstance.udp.ShowStatus {
 		f.onRequest(rw, req)
@@ -198,7 +198,7 @@ func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.URL.Path, "/static/") || strings.HasPrefix(req.URL.Path, "/favicon.ico") {
+	if strings.HasPrefix(req.URL.Path, "/static/") || strings.HasPrefix(req.URL.Path, "/resource/") || strings.HasPrefix(req.URL.Path, "/favicon.ico") {
 		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
 			log.Fatal(err)
@@ -251,8 +251,8 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 				fmt.Printf("%v \n", err)
 			}
 		}(file)
-		http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
-		//http.ServeFile(rw, req, filepath.Join(rootSrc, fileUrl))
+		//http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
+		http.ServeFile(rw, req, filepath.Join(rootSrc, fileUrl))
 	}
 }
 

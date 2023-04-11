@@ -1,24 +1,17 @@
 <template>
   <div id="playerBody" ref="playerBodyRef" style="position: relative">
-    <div id="playerContent" ref="playerContentRef">
-      <div id="playerVideo" v-loading="player.videoLoading">
+    <div
+      id="playerContent"
+      ref="playerContentRef"
+      v-loading="player.videoLoading"
+    >
+      <div id="playerVideo">
         <!-- <n-spin :show="player.videoLoading"> -->
         <video
+          id="playerVideoBody"
           ref="videoRef"
-          style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            border: 0;
-            height: 100%;
-            user-select: none;
-            border-radius: inherit;
-            vertical-align: middle;
-            width: 100%;
-            outline: 0;
-          "
           controls="false"
-          :src="player.srcList[player.srcIndex]"
+          :src="videoData.transCodeSrcList[player.srcIndex]"
           :autoplay="player.autoplay"
           :muted="player.muted"
           :loop="player.loop"
@@ -99,18 +92,15 @@
               v-model:value="player.current"
               style="margin-left: 2px; margin-right: 2px"
               :step="1"
-              :max="player.durationSec"
+              :max="videoData.totalDurationSec"
               :min="0"
               :marks="transcodeMarks()"
               placement="top"
               :format-tooltip="
-            (number:number) => {
-              return secToTime(number) + '   (' +  String(player.srcIndex) + '/' +  String(player.srcList.length - 1) +')  ' + (player.srcList.filter((el) => el).length >=
-          player.durationSecList.length
-            ? 'complete'
-            : 'loading')
-            }
-          "
+                (number: number) => {
+                  return secToTime(number) + '/' + videoData.totalDurationString
+                }
+              "
               @mousedown="_timeMouseDown()"
               @update:value="_timechange()"
             />
@@ -154,13 +144,15 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted, nextTick } from 'vue'
+import { defineComponent, ref, watch, onMounted } from 'vue'
+import { env } from 'process'
 export default defineComponent({
   name: 'VideoShow',
 })
 </script>
 <script setup lang="ts">
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import axios from 'axios'
+import { createFFmpeg } from '@ffmpeg/ffmpeg'
 import { timeToSec, secToTime } from '@/util/time'
 import {
   Rewind16Filled,
@@ -214,7 +206,7 @@ function _back(time: number) {
 }
 
 function _go(time: number) {
-  if (player.value.current + time > player.value.durationSec) {
+  if (player.value.current + time > videoData.value.totalDurationSec) {
     _doTimechange(0)
   } else {
     _doTimechange((player.value.current += time))
@@ -224,12 +216,13 @@ function _go(time: number) {
 function _ended() {
   let nextIndex = player.value.srcIndex + 1
   if (
-    nextIndex >= player.value.srcList.length &&
-    player.value.srcList.length >= player.value.durationSecList.length
+    nextIndex >= videoData.value.transCodeSrcList.length &&
+    videoData.value.transCodeSrcList.length >=
+      videoData.value.transCodeInfoList.length
   ) {
     nextIndex = 0
   }
-  _doTimechange(player.value.durationSecList[nextIndex].start)
+  _doTimechange(videoData.value.transCodeInfoList[nextIndex].rangeTimeSec.start)
 }
 
 function _timechange() {
@@ -238,14 +231,14 @@ function _timechange() {
 
 function _doTimechange(newTime: number) {
   player.value.current = newTime
-  let srcIndex = parseInt(String(newTime / player.value.transCodeStep))
-  if (srcIndex >= player.value.durationSecList.length) {
-    srcIndex = player.value.durationSecList.length - 1
+  let srcIndex = parseInt(String(newTime / videoData.value.transCodeStep))
+  if (srcIndex >= videoData.value.transCodeInfoList.length) {
+    srcIndex = videoData.value.transCodeInfoList.length - 1
   }
-  if (!player.value.srcList[srcIndex]) {
+  if (!videoData.value.transCodeSrcList[srcIndex]) {
     player.value.videoLoading = true
     for (
-      let index = player.value.durationSecList.length - 1;
+      let index = videoData.value.transCodeInfoList.length - 1;
       index >= srcIndex;
       index--
     ) {
@@ -255,11 +248,11 @@ function _doTimechange(newTime: number) {
   if (srcIndex == player.value.srcIndex) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     videoRef.value!.currentTime =
-      player.value.current - srcIndex * player.value.transCodeStep
+      player.value.current - srcIndex * videoData.value.transCodeStep
     player.value.currentJump = 0
   } else {
     player.value.currentJump =
-      player.value.current - srcIndex * player.value.transCodeStep
+      player.value.current - srcIndex * videoData.value.transCodeStep
   }
   player.value.srcIndex = srcIndex
 }
@@ -269,7 +262,7 @@ function _timeUpdate() {
     player.value.current =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       videoRef.value!.currentTime +
-      player.value.srcIndex * player.value.transCodeStep
+      player.value.srcIndex * videoData.value.transCodeStep
   }
 }
 
@@ -280,7 +273,7 @@ function _canPlay() {
     player.value.currentJump = 0
   }
 
-  if (player.value.srcList[player.value.srcIndex]) {
+  if (videoData.value.transCodeSrcList[player.value.srcIndex]) {
     player.value.videoLoading = false
   }
 
@@ -352,34 +345,47 @@ window.onresize = (a) => {
   }
 }
 
-const player = ref({
+const videoData = ref({
   realUrl: '',
   coverUrl: '',
+  videoType: '',
+  totalBytes: 0,
+  totalDurationString: '',
+  totalDurationSec: 0,
+  dataList: <Uint8Array[]>[],
+  // rangeStep: 1073741824,
+  rangeStep: 2040109465,
+  rangeLoadInfoList: <{ start: number; end: number }[]>[],
+  transCodeStep: 60,
+  transCodeInfoList: <
+    {
+      rangeTimeSec: { start: number; end: number }
+      rangeTimeString: { start: string; end: string }
+      sourceIndex: number
+    }[]
+  >[],
+  transCodeSrcList: <string[]>[],
+})
+
+const player = ref({
+  videoLoading: true,
+  contentLoading: true,
+  srcIndex: 0,
   current: 0,
   currentJump: 0,
-  durationString: '',
-  durationSec: 0,
-  //
-  // videoLoading: false,
-  videoLoading: true,
-  // contentLoading: false,
-  contentLoading: true,
   autoplay: false,
   muted: false,
   loop: false,
   volume: 100,
   isPlay: false,
   fullScreen: false,
-  srcIndex: 0,
-  srcList: <string[]>[''],
-  durationSecList: <{ start: number; end: number }[]>[],
-  transCodeStep: 60,
+  ffmpegWriteFileIndexList: <number[]>[],
 })
 
 watch(
   () => props.url,
   (newValue) => {
-    player.value.realUrl = newValue
+    videoData.value.realUrl = newValue
   },
   {
     immediate: true,
@@ -389,7 +395,7 @@ watch(
 watch(
   () => props.cover,
   (newValue) => {
-    player.value.coverUrl = newValue
+    videoData.value.coverUrl = newValue
   },
   {
     immediate: true,
@@ -398,9 +404,10 @@ watch(
 
 function transcodeMarks() {
   const marks: Record<number, string> = {}
-  player.value.srcList.filter((el, index) => {
+  videoData.value.transCodeSrcList.filter((el, index) => {
     if (el) {
-      marks[Number(player.value.durationSecList[index].end)] = ''
+      marks[Number(videoData.value.transCodeInfoList[index].rangeTimeSec.end)] =
+        ''
     }
   })
   return marks
@@ -408,34 +415,31 @@ function transcodeMarks() {
 
 const tranceCodeQueue = ref<number[]>([])
 
-function calcVideoTimeList(durationSec: number) {
-  const timeList = <{ start: number; end: number }[]>[]
-  // eslint-disable-next-line no-constant-condition
-  for (let start = 0; true; start += player.value.transCodeStep) {
-    let end = start + player.value.transCodeStep
-    if (end >= durationSec) {
-      end = durationSec
-      timeList.push({
-        start: start,
-        end: end,
-      })
-      break
-    } else {
-      timeList.push({
-        start: start,
-        end: end,
-      })
-    }
-  }
-  return timeList
-}
+const urlPrefix =
+  window.location.protocol +
+  '//' +
+  window.location.host +
+  import.meta.env.VITE_APP_BASE_API
 
 const ffmpeg = createFFmpeg({
   log: true,
+  corePath: urlPrefix + '/resource/ffmpeg-core.js',
+  // corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+  // corePath: urlPrefix + '/resource/ffmpeg-core-st.js',
+  workerPath: urlPrefix + '/resource/ffmpeg-core.worker.js',
+  wasmPath: urlPrefix + '/resource/ffmpeg-core.wasm',
 })
 
-ffmpeg.setLogger((log: { type: string; message: string }) => {
-  if (log.type === 'fferr' && log.message.includes('Duration')) {
+ffmpeg.setProgress((progressParams: { ratio: number }) => {
+  // console.log(progressParams)
+})
+
+ffmpeg.setLogger(async (log: { type: string; message: string }) => {
+  if (
+    log.type === 'fferr' &&
+    log.message.includes('Duration') &&
+    !videoData.value.totalDurationSec
+  ) {
     const m = log.message.split('  Duration: ')[1].split(', ')
     let dur = m[0]
     if (dur) {
@@ -445,66 +449,189 @@ ffmpeg.setLogger((log: { type: string; message: string }) => {
         durArray[2] = '0' + durArray[2]
       }
       dur = durArray.join(':')
-      player.value.durationString = dur
-      player.value.durationSec = timeToSec(dur)
+      videoData.value.totalDurationString = dur
+      videoData.value.totalDurationSec = parseInt(
+        String(
+          timeToSec(dur) *
+            (videoData.value.rangeStep / videoData.value.totalBytes)
+        )
+      )
+      videoData.value.totalDurationString = secToTime(
+        videoData.value.totalDurationSec
+      )
+
+      calcVideoTransCodeInfo()
+      initTransCodeQueue()
     }
   }
 })
 
-async function transcode() {
-  const fileArrayBuffer = await fetchFile(player.value.realUrl)
-  await ffmpeg.load()
-  ffmpeg.FS('writeFile', 'origin', fileArrayBuffer)
-  await ffmpeg.run('-i', 'origin')
-  player.value.durationSecList = calcVideoTimeList(player.value.durationSec)
-
-  for (
-    let index = player.value.durationSecList.length - 1;
-    index >= 0;
-    index--
-  ) {
-    tranceCodeQueue.value.push(index)
+async function loadVideoDataList() {
+  const loadVideo = async function (start: number, end: number) {
+    await axios({
+      url: videoData.value.realUrl,
+      responseType: 'blob',
+      headers: {
+        Range: 'bytes=' + start + '-' + end,
+      },
+    }).then(async (res: any) => {
+      videoData.value.dataList.push(
+        new Uint8Array(await res.data.arrayBuffer())
+      )
+    })
   }
-  await doTransCode()
+  await axios({
+    url: videoData.value.realUrl,
+    responseType: 'blob',
+    headers: {
+      Range: 'bytes=0-1',
+    },
+  }).then(async (res: any) => {
+    const contentRange = res.headers['content-range']
+    videoData.value.totalBytes = Number(contentRange.split('/')[1])
+
+    // eslint-disable-next-line no-constant-condition
+    // for (let start = 0; true; start += videoData.value.rangeStep) {
+    //   let end = start + videoData.value.rangeStep
+    //   if (end >= videoData.value.totalBytes) {
+    //     end = videoData.value.totalBytes
+
+    //     break
+    //   } else {
+    //     videoData.value.rangeLoadInfoList.push({
+    //       start: start,
+    //       end: end,
+    //     })
+    //   }
+    // }
+    videoData.value.rangeLoadInfoList.push({
+      start: 0,
+      end: videoData.value.rangeStep,
+    })
+
+    for (const rangeInfo of videoData.value.rangeLoadInfoList) {
+      await loadVideo(rangeInfo.start, rangeInfo.end)
+    }
+  })
 }
 
-async function doTransCode() {
-  let index
-  while ((index = tranceCodeQueue.value.pop()) != undefined) {
-    if (!player.value.srcList[index]) {
-      await ffmpeg.run(
-        '-i',
-        'origin',
-        '-ss',
-        secToTime(player.value.durationSecList[index].start),
-        '-to',
-        secToTime(player.value.durationSecList[index].end),
-        '-preset',
-        'ultrafast', // ultrafast superfast veryfast faster
-        'result' + index + '.mp4'
-      )
-      player.value.srcList[index] = URL.createObjectURL(
-        new Blob([ffmpeg.FS('readFile', 'result' + index + '.mp4').buffer], {
-          type: 'video/mp4',
+function calcVideoTransCodeInfo() {
+  let startTime = 0
+  for (const index in videoData.value.dataList) {
+    const bytes =
+      videoData.value.rangeLoadInfoList[index].end -
+      videoData.value.rangeLoadInfoList[index].start
+    // const timeSecProportion = bytes / videoData.value.totalBytes
+    const timeSecProportion = bytes / videoData.value.rangeStep
+    const sourceDurationSec =
+      timeSecProportion * videoData.value.totalDurationSec + startTime
+    // eslint-disable-next-line no-constant-condition
+    for (let start = startTime; true; start += videoData.value.transCodeStep) {
+      let end = start + videoData.value.transCodeStep
+      if (end >= sourceDurationSec) {
+        end = sourceDurationSec
+        startTime = sourceDurationSec
+        videoData.value.transCodeInfoList.push({
+          rangeTimeSec: { start: start, end: end },
+          rangeTimeString: { start: secToTime(start), end: secToTime(end) },
+          sourceIndex: Number(index),
         })
-      )
-
-      if (player.value.srcList[0] && Number(player.value.srcIndex) === 0) {
-        player.value.videoLoading = false
-        player.value.contentLoading = false
-        videoRef.value
-        if (videoRef.value) {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          videoRef.value!.poster = player.value.coverUrl
-        }
+        break
+      } else {
+        videoData.value.transCodeInfoList.push({
+          rangeTimeSec: { start: start, end: end },
+          rangeTimeString: { start: secToTime(start), end: secToTime(end) },
+          sourceIndex: Number(index),
+        })
       }
     }
   }
 }
 
+function initTransCodeQueue() {
+  for (
+    let index = videoData.value.transCodeInfoList.length - 1;
+    index >= 0;
+    index--
+  ) {
+    tranceCodeQueue.value.push(index)
+  }
+}
+
+async function transcode() {
+  await ffmpeg.load()
+  await loadVideoDataList()
+  await ffmpeg.FS('writeFile', 'origin0', videoData.value.dataList[0])
+  player.value.ffmpegWriteFileIndexList.push(0)
+  await ffmpeg.run('-i', 'origin0')
+}
+
+async function doTransCode() {
+  let index
+  while ((index = tranceCodeQueue.value.pop()) != undefined) {
+    if (!videoData.value.transCodeSrcList[index]) {
+      if (
+        player.value.ffmpegWriteFileIndexList.indexOf(
+          Number(videoData.value.transCodeInfoList[index].sourceIndex)
+        ) < 0
+      ) {
+        const originData = new Uint8Array(
+          videoData.value.dataList[
+            videoData.value.transCodeInfoList[index].sourceIndex
+          ]
+        )
+        ffmpeg.FS(
+          'writeFile',
+          'origin' + videoData.value.transCodeInfoList[index].sourceIndex,
+          originData
+        )
+        player.value.ffmpegWriteFileIndexList.push(
+          Number(videoData.value.transCodeInfoList[index].sourceIndex)
+        )
+      }
+
+      await ffmpeg.run(
+        '-i',
+        'origin' + videoData.value.transCodeInfoList[index].sourceIndex,
+        '-ss',
+        videoData.value.transCodeInfoList[index].rangeTimeString.start,
+        '-to',
+        videoData.value.transCodeInfoList[index].rangeTimeString.end,
+        '-preset',
+        'ultrafast', // ultrafast superfast veryfast faster
+        'result' + index + '.mp4'
+      )
+      videoData.value.transCodeSrcList[index] = URL.createObjectURL(
+        new Blob([ffmpeg.FS('readFile', 'result' + index + '.mp4').buffer], {
+          type: 'video/mp4',
+        })
+      )
+      if (
+        videoData.value.transCodeSrcList[0] &&
+        Number(player.value.srcIndex) === 0
+      ) {
+        player.value.videoLoading = false
+        player.value.contentLoading = false
+        videoRef.value
+        if (videoRef.value) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          videoRef.value!.poster = videoData.value.coverUrl
+        }
+      }
+    }
+  }
+  setTimeout(async () => {
+    await doTransCode()
+  }, 1000)
+}
+
 transcode().catch((e) => {
   console.error(e)
 })
+
+setTimeout(async () => {
+  await doTransCode()
+}, 1000)
 </script>
 
 <style scoped lang="scss">
@@ -529,6 +656,19 @@ transcode().catch((e) => {
   justify-content: center;
   align-items: center;
   flex-wrap: nowrap;
+}
+
+#playerVideoBody {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  height: 100%;
+  user-select: none;
+  border-radius: inherit;
+  vertical-align: middle;
+  width: 100%;
+  outline: 0;
 }
 
 #controller {

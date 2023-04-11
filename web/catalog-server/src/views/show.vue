@@ -761,7 +761,8 @@ function getNeighborList() {
 getNeighborList()
 
 const loopGetNeighborList = setInterval(() => {
-  getNeighborList()
+  return
+  // getNeighborList()
 }, 10000)
 
 onBeforeRouteLeave(

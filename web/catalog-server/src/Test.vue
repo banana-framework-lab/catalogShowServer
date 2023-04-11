@@ -15,9 +15,9 @@
         :rotate="-15"
       />
     </n-message-provider>
-    <div style="width: 100%">
+    <div style="width: 500px">
       <VideoShow
-        url="http://192.168.5.63:9999/api/file/?file=/AVI/TEST5.avi"
+        url="http://192.168.5.63:9999/api/file/?file=/AVI/TEST3.avi"
       ></VideoShow>
     </div>
   </n-config-provider>
