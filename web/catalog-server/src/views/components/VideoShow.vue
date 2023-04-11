@@ -145,7 +145,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted } from 'vue'
-import { env } from 'process'
 export default defineComponent({
   name: 'VideoShow',
 })
@@ -230,35 +229,45 @@ function _timechange() {
 }
 
 function _doTimechange(newTime: number) {
-  player.value.current = newTime
-  let srcIndex = parseInt(String(newTime / videoData.value.transCodeStep))
-  if (srcIndex >= videoData.value.transCodeInfoList.length) {
-    srcIndex = videoData.value.transCodeInfoList.length - 1
-  }
-  if (!videoData.value.transCodeSrcList[srcIndex]) {
-    player.value.videoLoading = true
-    for (
-      let index = videoData.value.transCodeInfoList.length - 1;
-      index >= srcIndex;
-      index--
-    ) {
-      tranceCodeQueue.value.push(index)
+  if (videoData.value.videoType != 'video/mp4') {
+    player.value.current = newTime
+    let srcIndex = parseInt(String(newTime / videoData.value.transCodeStep))
+    if (srcIndex >= videoData.value.transCodeInfoList.length) {
+      srcIndex = videoData.value.transCodeInfoList.length - 1
+    }
+    if (!videoData.value.transCodeSrcList[srcIndex]) {
+      player.value.videoLoading = true
+      for (
+        let index = videoData.value.transCodeInfoList.length - 1;
+        index >= srcIndex;
+        index--
+      ) {
+        tranceCodeQueue.value.push(index)
+      }
+    }
+    if (srcIndex == player.value.srcIndex) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      videoRef.value!.currentTime =
+        player.value.current - srcIndex * videoData.value.transCodeStep
+      player.value.currentJump = 0
+    } else {
+      player.value.currentJump =
+        player.value.current - srcIndex * videoData.value.transCodeStep
+    }
+    player.value.srcIndex = srcIndex
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    videoRef.value!.currentTime = newTime
+    if (player.value.isPlay) {
+      setTimeout(() => {
+        videoRef.value?.play()
+      }, 10)
     }
   }
-  if (srcIndex == player.value.srcIndex) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    videoRef.value!.currentTime =
-      player.value.current - srcIndex * videoData.value.transCodeStep
-    player.value.currentJump = 0
-  } else {
-    player.value.currentJump =
-      player.value.current - srcIndex * videoData.value.transCodeStep
-  }
-  player.value.srcIndex = srcIndex
 }
 
 function _timeUpdate() {
-  if (player.value) {
+  if (player.value && videoRef.value?.currentTime) {
     player.value.current =
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       videoRef.value!.currentTime +
@@ -267,18 +276,26 @@ function _timeUpdate() {
 }
 
 function _canPlay() {
-  if (player.value.currentJump > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    videoRef.value!.currentTime = player.value.currentJump
-    player.value.currentJump = 0
-  }
+  if (videoData.value.videoType != 'video/mp4') {
+    if (player.value.currentJump > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      videoRef.value!.currentTime = player.value.currentJump
+      player.value.currentJump = 0
+    }
 
-  if (videoData.value.transCodeSrcList[player.value.srcIndex]) {
+    if (videoData.value.transCodeSrcList[player.value.srcIndex]) {
+      player.value.videoLoading = false
+    }
+
+    if (player.value.isPlay) {
+      videoRef.value?.play()
+    }
+  } else {
+    videoData.value.totalDurationSec = Number(videoRef.value?.duration)
+    videoData.value.totalDurationString = secToTime(
+      Number(videoRef.value?.duration)
+    )
     player.value.videoLoading = false
-  }
-
-  if (player.value.isPlay) {
-    videoRef.value?.play()
   }
 }
 
@@ -404,12 +421,15 @@ watch(
 
 function transcodeMarks() {
   const marks: Record<number, string> = {}
-  videoData.value.transCodeSrcList.filter((el, index) => {
-    if (el) {
-      marks[Number(videoData.value.transCodeInfoList[index].rangeTimeSec.end)] =
-        ''
-    }
-  })
+  if (videoData.value.videoType != 'video/mp4') {
+    videoData.value.transCodeSrcList.filter((el, index) => {
+      if (el) {
+        marks[
+          Number(videoData.value.transCodeInfoList[index].rangeTimeSec.end)
+        ] = ''
+      }
+    })
+  }
   return marks
 }
 
@@ -488,8 +508,11 @@ async function loadVideoDataList() {
     },
   }).then(async (res: any) => {
     const contentRange = res.headers['content-range']
+    videoData.value.videoType = res.headers['content-type']
     videoData.value.totalBytes = Number(contentRange.split('/')[1])
-
+    if (videoData.value.totalBytes <= videoData.value.rangeStep) {
+      videoData.value.rangeStep = videoData.value.totalBytes
+    }
     // eslint-disable-next-line no-constant-condition
     // for (let start = 0; true; start += videoData.value.rangeStep) {
     //   let end = start + videoData.value.rangeStep
@@ -559,11 +582,15 @@ function initTransCodeQueue() {
 }
 
 async function transcode() {
-  await ffmpeg.load()
   await loadVideoDataList()
-  await ffmpeg.FS('writeFile', 'origin0', videoData.value.dataList[0])
-  player.value.ffmpegWriteFileIndexList.push(0)
-  await ffmpeg.run('-i', 'origin0')
+  if (videoData.value.videoType != 'video/mp4') {
+    await ffmpeg.load()
+    await ffmpeg.FS('writeFile', 'origin0', videoData.value.dataList[0])
+    player.value.ffmpegWriteFileIndexList.push(0)
+    await ffmpeg.run('-i', 'origin0')
+  } else {
+    videoData.value.transCodeSrcList[0] = videoData.value.realUrl
+  }
 }
 
 async function doTransCode() {
