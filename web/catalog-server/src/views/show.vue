@@ -211,7 +211,7 @@
         </n-layout-content>
         <n-layout-content content-style="padding: 0rem 1rem 1rem 1rem;">
           <n-spin :show="search.loading" size="large">
-            <template #description> 正在加载。。。 </template>
+            <template #description> 加载中 </template>
             <template #icon>
               <n-icon>
                 <Reload />
@@ -436,6 +436,7 @@
           :src="show.source.pic.url"
         />
         <div v-if="show.modal.type === 'video'">
+          <!-- <VideoShowVime -->
           <VideoShow
             style="width: 100%"
             :url="show.source.video.url"
@@ -487,7 +488,7 @@ import {
 import { h, reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
 import VideoShow from '@/views/components/VideoShow.vue'
-// import VideoShow from '@/views/components/VideoShow.vue'
+// import VideoShowVime from '@/views/components/VideoShowVime.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
@@ -508,7 +509,13 @@ function editBroadcastStatus() {
 }
 
 const neighborUrl = ref('')
-const baseUrl = import.meta.env.VITE_APP_BASE_API
+const baseUrl =
+  window.location.protocol +
+  '//' +
+  // '127.0.0.1:8887' +
+  window.location.host +
+  import.meta.env.VITE_APP_BASE_API +
+  ''
 const listShowRef = ref<InstanceType<typeof NGrid>>()
 const tableShowRef = ref<InstanceType<typeof NTable>>()
 

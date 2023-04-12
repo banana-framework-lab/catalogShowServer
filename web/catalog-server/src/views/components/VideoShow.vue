@@ -1,12 +1,8 @@
 <template>
   <div id="playerBody" ref="playerBodyRef" style="position: relative">
-    <div
-      id="playerContent"
-      ref="playerContentRef"
-      v-loading="player.videoLoading"
-    >
+    <div id="playerContent" ref="playerContentRef">
       <div id="playerVideo">
-        <!-- <n-spin :show="player.videoLoading"> -->
+        <n-spin :show="player.videoLoading" />
         <video
           id="playerVideoBody"
           ref="videoRef"
@@ -20,7 +16,6 @@
           @ended="_ended()"
           @canplay="_canPlay()"
         ></video>
-        <!-- </n-spin> -->
       </div>
     </div>
     <div
@@ -144,13 +139,14 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue'
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue'
 export default defineComponent({
   name: 'VideoShow',
 })
 </script>
 <script setup lang="ts">
 import axios from 'axios'
+import { urlencode } from '@/util/util'
 import { createFFmpeg } from '@ffmpeg/ffmpeg'
 import { timeToSec, secToTime } from '@/util/time'
 import {
@@ -193,14 +189,18 @@ onMounted(() => {
 })
 
 function _timeMouseDown() {
-  videoRef.value?.pause()
+  if (
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+  ) {
+    videoRef.value?.pause()
+  }
 }
 
 function _back(time: number) {
   if (player.value.current - time <= 0) {
     _doTimechange(0)
   } else {
-    _doTimechange((player.value.current -= time))
+    _doTimechange(player.value.current - time)
   }
 }
 
@@ -208,20 +208,26 @@ function _go(time: number) {
   if (player.value.current + time > videoData.value.totalDurationSec) {
     _doTimechange(0)
   } else {
-    _doTimechange((player.value.current += time))
+    _doTimechange(player.value.current + time)
   }
 }
 
 function _ended() {
-  let nextIndex = player.value.srcIndex + 1
   if (
-    nextIndex >= videoData.value.transCodeSrcList.length &&
-    videoData.value.transCodeSrcList.length >=
-      videoData.value.transCodeInfoList.length
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
   ) {
-    nextIndex = 0
+    let nextIndex = player.value.srcIndex + 1
+    if (
+      nextIndex >= videoData.value.transCodeSrcList.length &&
+      videoData.value.transCodeSrcList.length >=
+        videoData.value.transCodeInfoList.length
+    ) {
+      nextIndex = 0
+    }
+    _doTimechange(
+      videoData.value.transCodeInfoList[nextIndex].rangeTimeSec.start
+    )
   }
-  _doTimechange(videoData.value.transCodeInfoList[nextIndex].rangeTimeSec.start)
 }
 
 function _timechange() {
@@ -229,7 +235,9 @@ function _timechange() {
 }
 
 function _doTimechange(newTime: number) {
-  if (videoData.value.videoType != 'video/mp4') {
+  if (
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+  ) {
     player.value.current = newTime
     let srcIndex = parseInt(String(newTime / videoData.value.transCodeStep))
     if (srcIndex >= videoData.value.transCodeInfoList.length) {
@@ -276,7 +284,9 @@ function _timeUpdate() {
 }
 
 function _canPlay() {
-  if (videoData.value.videoType != 'video/mp4') {
+  if (
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+  ) {
     if (player.value.currentJump > 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       videoRef.value!.currentTime = player.value.currentJump
@@ -300,13 +310,17 @@ function _canPlay() {
 }
 
 function _play() {
-  videoRef.value?.play()
-  player.value.isPlay = !player.value.isPlay
+  setTimeout(() => {
+    videoRef.value?.play()
+    player.value.isPlay = !player.value.isPlay
+  }, 10)
 }
 
 function _pause() {
-  videoRef.value?.pause()
-  player.value.isPlay = !player.value.isPlay
+  setTimeout(() => {
+    videoRef.value?.pause()
+    player.value.isPlay = !player.value.isPlay
+  }, 10)
 }
 
 function _volume() {
@@ -362,29 +376,58 @@ window.onresize = (a) => {
   }
 }
 
-const videoData = ref({
+interface videoDataClass {
+  realUrl: string
+  coverUrl: string
+  videoType: string
+  totalBytes: number
+  totalDurationString: string
+  totalDurationSec: number
+  dataList: Uint8Array[]
+  rangeStep: number
+  rangeLoadInfoList: { start: number; end: number }[]
+  transCodeStep: number
+  transCodeInfoList: {
+    rangeTimeSec: { start: number; end: number }
+    rangeTimeString: { start: string; end: string }
+    sourceIndex: number
+  }[]
+  transCodeSrcList: string[]
+}
+
+const videoData = ref<videoDataClass>({
   realUrl: '',
   coverUrl: '',
   videoType: '',
   totalBytes: 0,
   totalDurationString: '',
   totalDurationSec: 0,
-  dataList: <Uint8Array[]>[],
+  dataList: [],
   // rangeStep: 1073741824,
   rangeStep: 2040109465,
-  rangeLoadInfoList: <{ start: number; end: number }[]>[],
+  rangeLoadInfoList: [],
   transCodeStep: 60,
-  transCodeInfoList: <
-    {
-      rangeTimeSec: { start: number; end: number }
-      rangeTimeString: { start: string; end: string }
-      sourceIndex: number
-    }[]
-  >[],
-  transCodeSrcList: <string[]>[],
+  transCodeInfoList: [],
+  transCodeSrcList: [],
 })
 
-const player = ref({
+interface playerClass {
+  videoLoading: boolean
+  contentLoading: boolean
+  srcIndex: number
+  current: number
+  currentJump: number
+  autoplay: boolean
+  muted: boolean
+  loop: boolean
+  volume: number
+  isPlay: boolean
+  fullScreen: boolean
+  ffmpegWriteFileIndexList: number[]
+  noTransCodeVideoType: string[]
+}
+
+const player = ref<playerClass>({
   videoLoading: true,
   contentLoading: true,
   srcIndex: 0,
@@ -396,13 +439,14 @@ const player = ref({
   volume: 100,
   isPlay: false,
   fullScreen: false,
-  ffmpegWriteFileIndexList: <number[]>[],
+  ffmpegWriteFileIndexList: [],
+  noTransCodeVideoType: ['video/mp4', 'video/x-matroska'],
 })
 
 watch(
   () => props.url,
   (newValue) => {
-    videoData.value.realUrl = newValue
+    videoData.value.realUrl = urlencode(newValue)
   },
   {
     immediate: true,
@@ -412,7 +456,7 @@ watch(
 watch(
   () => props.cover,
   (newValue) => {
-    videoData.value.coverUrl = newValue
+    videoData.value.coverUrl = urlencode(newValue)
   },
   {
     immediate: true,
@@ -421,7 +465,9 @@ watch(
 
 function transcodeMarks() {
   const marks: Record<number, string> = {}
-  if (videoData.value.videoType != 'video/mp4') {
+  if (
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+  ) {
     videoData.value.transCodeSrcList.filter((el, index) => {
       if (el) {
         marks[
@@ -509,9 +555,16 @@ async function loadVideoDataList() {
   }).then(async (res: any) => {
     const contentRange = res.headers['content-range']
     videoData.value.videoType = res.headers['content-type']
+    if (videoData.value.videoType === 'video/x-matroska') {
+      videoData.value.videoType = 'video/mp4'
+    }
     videoData.value.totalBytes = Number(contentRange.split('/')[1])
-    if (videoData.value.totalBytes <= videoData.value.rangeStep) {
-      videoData.value.rangeStep = videoData.value.totalBytes
+    if (
+      player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+    ) {
+      if (videoData.value.totalBytes <= videoData.value.rangeStep) {
+        videoData.value.rangeStep = videoData.value.totalBytes
+      }
     }
     // eslint-disable-next-line no-constant-condition
     // for (let start = 0; true; start += videoData.value.rangeStep) {
@@ -527,13 +580,17 @@ async function loadVideoDataList() {
     //     })
     //   }
     // }
-    videoData.value.rangeLoadInfoList.push({
-      start: 0,
-      end: videoData.value.rangeStep,
-    })
+    if (
+      player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+    ) {
+      videoData.value.rangeLoadInfoList.push({
+        start: 0,
+        end: videoData.value.rangeStep,
+      })
 
-    for (const rangeInfo of videoData.value.rangeLoadInfoList) {
-      await loadVideo(rangeInfo.start, rangeInfo.end)
+      for (const rangeInfo of videoData.value.rangeLoadInfoList) {
+        await loadVideo(rangeInfo.start, rangeInfo.end)
+      }
     }
   })
 }
@@ -583,13 +640,20 @@ function initTransCodeQueue() {
 
 async function transcode() {
   await loadVideoDataList()
-  if (videoData.value.videoType != 'video/mp4') {
+  if (
+    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+  ) {
     await ffmpeg.load()
     await ffmpeg.FS('writeFile', 'origin0', videoData.value.dataList[0])
     player.value.ffmpegWriteFileIndexList.push(0)
     await ffmpeg.run('-i', 'origin0')
   } else {
-    videoData.value.transCodeSrcList[0] = videoData.value.realUrl
+    videoData.value.transCodeSrcList[player.value.srcIndex] =
+      videoData.value.realUrl
+    nextTick(() => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      videoRef.value?.load()
+    })
   }
 }
 

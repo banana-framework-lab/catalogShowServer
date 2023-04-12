@@ -6,11 +6,5 @@ import App from './App.vue'
 import naive from 'naive-ui'
 import router from '@/router'
 
-import { vLoading } from '@/directive/loading/index'
-
 // createApp(Test)
-createApp(App)
-  .use(router)
-  .use(naive)
-  .directive('loading', vLoading)
-  .mount('#app')
+createApp(App).use(router).use(naive).mount('#app')

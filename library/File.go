@@ -250,6 +250,7 @@ func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				fmt.Printf("%v \n", err)
 			}
+			fmt.Println("释放" + filepath.Join(rootSrc, fileUrl))
 		}(file)
 		//http.ServeContent(rw, req, values.Get("file"), time.Now(), file)
 		http.ServeFile(rw, req, filepath.Join(rootSrc, fileUrl))
