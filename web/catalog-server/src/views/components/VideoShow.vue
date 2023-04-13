@@ -461,11 +461,21 @@ const urlPrefix =
 
 const ffmpeg = createFFmpeg({
   log: true,
-  corePath: urlPrefix + '/resource/ffmpeg-core.js',
-  // corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+  corePath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.js`,
+    import.meta.url
+  ).toString(),
   // corePath: urlPrefix + '/resource/ffmpeg-core-st.js',
-  workerPath: urlPrefix + '/resource/ffmpeg-core.worker.js',
-  wasmPath: urlPrefix + '/resource/ffmpeg-core.wasm',
+  workerPath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.worker.js`,
+    import.meta.url
+  ).toString(),
+  // workerPath: urlPrefix + '/resource/ffmpeg-core.worker.js',
+  wasmPath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.wasm`,
+    import.meta.url
+  ).toString(),
+  // wasmPath: urlPrefix + '/resource/ffmpeg-core.wasm',
 })
 
 ffmpeg.setProgress((progressParams: { ratio: number }) => {
