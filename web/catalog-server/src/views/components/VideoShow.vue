@@ -376,72 +376,44 @@ window.onresize = (a) => {
   }
 }
 
-interface videoDataClass {
-  realUrl: string
-  coverUrl: string
-  videoType: string
-  totalBytes: number
-  totalDurationString: string
-  totalDurationSec: number
-  dataList: Uint8Array[]
-  rangeStep: number
-  rangeLoadInfoList: { start: number; end: number }[]
-  transCodeStep: number
+class videoDataClass {
+  realUrl = ''
+  coverUrl = ''
+  videoType = ''
+  totalBytes = 0
+  totalDurationString = ''
+  totalDurationSec = 0
+  dataList: Uint8Array[] = []
+  rangeStep = 2040109465
+  rangeLoadInfoList: { start: number; end: number }[] = []
+  transCodeStep = 60
   transCodeInfoList: {
     rangeTimeSec: { start: number; end: number }
     rangeTimeString: { start: string; end: string }
     sourceIndex: number
-  }[]
-  transCodeSrcList: string[]
+  }[] = []
+  transCodeSrcList: string[] = []
 }
 
-const videoData = ref<videoDataClass>({
-  realUrl: '',
-  coverUrl: '',
-  videoType: '',
-  totalBytes: 0,
-  totalDurationString: '',
-  totalDurationSec: 0,
-  dataList: [],
-  // rangeStep: 1073741824,
-  rangeStep: 2040109465,
-  rangeLoadInfoList: [],
-  transCodeStep: 60,
-  transCodeInfoList: [],
-  transCodeSrcList: [],
-})
+const videoData = ref(new videoDataClass())
 
-interface playerClass {
-  videoLoading: boolean
-  contentLoading: boolean
-  srcIndex: number
-  current: number
-  currentJump: number
-  autoplay: boolean
-  muted: boolean
-  loop: boolean
-  volume: number
-  isPlay: boolean
-  fullScreen: boolean
-  ffmpegWriteFileIndexList: number[]
-  noTransCodeVideoType: string[]
+class playerClass {
+  videoLoading = true
+  contentLoading = true
+  srcIndex = 0
+  current = 0
+  currentJump = 0
+  autoplay = false
+  muted = false
+  loop = false
+  volume = 100
+  isPlay = false
+  fullScreen = false
+  ffmpegWriteFileIndexList: number[] = []
+  noTransCodeVideoType: string[] = ['video/mp4', 'video/x-matroska']
 }
 
-const player = ref<playerClass>({
-  videoLoading: true,
-  contentLoading: true,
-  srcIndex: 0,
-  current: 0,
-  currentJump: 0,
-  autoplay: false,
-  muted: false,
-  loop: false,
-  volume: 100,
-  isPlay: false,
-  fullScreen: false,
-  ffmpegWriteFileIndexList: [],
-  noTransCodeVideoType: ['video/mp4', 'video/x-matroska'],
-})
+const player = ref(new playerClass())
 
 watch(
   () => props.url,
