@@ -6,7 +6,6 @@ import viteCompression from 'vite-plugin-compression'
 // https://vitejs.dev/config/
 export default ({ mode }: ConfigEnv): UserConfigExport => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) }
-  console.log(process.env)
   return defineConfig({
     plugins: [
       vue(),
