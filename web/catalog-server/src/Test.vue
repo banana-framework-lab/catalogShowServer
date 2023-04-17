@@ -16,9 +16,9 @@
       />
     </n-message-provider>
     <div style="width: 500px">
-      <VideoShow
-        url="http://192.168.5.63:9999/api/file/?file=/AVI/TEST3.avi"
-      ></VideoShow>
+      <VideoShowST
+        url="http://127.0.0.1:8887/file/?file=/TEST.avi"
+      ></VideoShowST>
     </div>
   </n-config-provider>
 </template>
@@ -32,5 +32,5 @@ export default defineComponent({
 <script setup lang="ts">
 import Message from '@/components/Message.vue'
 import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
-import VideoShow from '@/views/components/VideoShow.vue'
+import VideoShowST from '@/views/components/VideoShowST.vue'
 </script>

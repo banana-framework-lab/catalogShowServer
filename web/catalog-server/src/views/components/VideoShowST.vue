@@ -456,8 +456,8 @@ function transcodeMarks() {
 
 // const worker = new ffmpegWorker()
 const worker = new Worker(
-  new URL('../../workers/ffmpeg-worker.worker.ts', import.meta.url),
-  { type: 'module' }
+  new URL('../../workers/ffmpeg-worker.worker.ts', import.meta.url)
+  // { type: 'module' }
 )
 worker.onmessage = ({ data }) => {
   //
@@ -531,18 +531,16 @@ async function loadVideoDataList() {
         await loadVideo(rangeInfo.start, rangeInfo.end)
       }
     }
-
+    console.log(videoData.value.dataList[0])
     worker.postMessage(
-      JSON.parse(
-        JSON.stringify({
-          messageType: 'input',
-          data: {
-            totalBytes: videoData.value.totalBytes,
-            dataList: videoData.value.dataList,
-            rangeLoadInfoList: videoData.value.rangeLoadInfoList,
-          },
-        })
-      )
+      JSON.stringify({
+        messageType: 'input',
+        data: {
+          totalBytes: videoData.value.totalBytes,
+          dataList: videoData.value.dataList,
+          rangeLoadInfoList: videoData.value.rangeLoadInfoList,
+        },
+      })
     )
   })
 }
