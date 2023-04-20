@@ -147,7 +147,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, PropType, onMounted } from 'vue'
+import { defineComponent, ref, PropType, onMounted, onUnmounted } from 'vue'
 export default defineComponent({
   name: 'VideoShowST',
 })

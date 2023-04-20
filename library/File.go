@@ -167,9 +167,9 @@ func (f *File) catalogRecurrence(src string) []int {
 
 func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
-	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
-	
+	//rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	//rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+
 	rw.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
 	// 必须，设置服务器支持的所有跨域请求的方法
 	rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")

@@ -23,7 +23,7 @@
   />
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, ref, watch, onUnmounted } from 'vue'
 import VideoBody from '@/views/components/VideoShowST/compoents/VideoBody.vue'
 export default defineComponent({
   name: 'VideoShowST',
@@ -71,6 +71,10 @@ worker.onmessage = (event) => {
     videoData.value.transCodeSrcList[res.data.index] = res.data.resultUrl
   }
 }
+
+onUnmounted(() => {
+  worker.terminate()
+})
 
 class videoDataClass {
   realUrl = ''
