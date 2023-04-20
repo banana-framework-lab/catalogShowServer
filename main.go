@@ -1,12 +1,20 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/base"
 	"github.com/banana-framework-lab/catalogShowServer/library"
 	"log"
 	"net/http"
 )
+
+func sign(key []byte, value string) []byte {
+	h := hmac.New(sha256.New, key)
+	h.Write([]byte(value))
+	return h.Sum(nil)
+}
 
 func main() {
 	base.Init()

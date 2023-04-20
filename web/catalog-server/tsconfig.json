@@ -18,5 +18,5 @@
     },
     "useUnknownInCatchVariables": false
   },
-  "include": ["auto-imports.d.ts", "components.d.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["auto-imports.d.ts", "components.d.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/views/components/VideoShowST/workers/ffmpeg-worker.worker.js", "src/views/components/VideoShowST/workers/ffmpeg-worker.worker.js"]
 }

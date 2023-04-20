@@ -437,7 +437,8 @@
         />
         <div v-if="show.modal.type === 'video'">
           <!-- <VideoShowVime -->
-          <VideoShow
+          <!-- <VideoShow -->
+          <VideoShowST
             style="width: 100%"
             :url="show.source.video.url"
             :cover="show.source.video.cover"
@@ -487,7 +488,8 @@ import {
 } from 'naive-ui'
 import { h, reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import VideoShow from '@/views/components/VideoShow.vue'
+import VideoShowST from '@/views/components/VideoShowST/index.vue'
+// import VideoShow from '@/views/components/VideoShow.vue'
 // import VideoShowVime from '@/views/components/VideoShowVime.vue'
 import AudioShowVime from '@/views/components/AudioShowVime.vue'
 

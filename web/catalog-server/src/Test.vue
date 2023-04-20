@@ -32,5 +32,5 @@ export default defineComponent({
 <script setup lang="ts">
 import Message from '@/components/Message.vue'
 import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
-import VideoShowST from '@/views/components/VideoShowST.vue'
+import VideoShowST from '@/views/components/VideoShowST/index.vue'
 </script>

@@ -139,14 +139,16 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue'
+import { defineComponent, ref, watch, onMounted, nextTick } from 'vue'
 export default defineComponent({
-  name: 'VideoShow',
+  name: 'VideoShowST',
 })
 </script>
 <script setup lang="ts">
 import axios from 'axios'
 import { urlencode } from '@/util/util'
+import { createFFmpeg } from '@ffmpeg/ffmpeg'
+import { timeToSec, secToTime } from '@/util/time'
 import {
   Rewind16Filled,
   FastForward16Filled,
@@ -171,213 +173,8 @@ const props = defineProps({
   },
 })
 
-const playerBodyRef = ref<InstanceType<typeof HTMLDivElement>>()
-const playerContentRef = ref<InstanceType<typeof HTMLDivElement>>()
-const allControllerRef = ref<InstanceType<typeof HTMLDivElement>>()
-const videoRef = ref<InstanceType<typeof HTMLVideoElement>>()
-
-onMounted(() => {
-  const height = (Number(playerContentRef.value?.clientWidth) * 9) / 16 + 'px'
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  playerBodyRef.value!.style.height = height
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  playerContentRef.value!.style.height = height
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  allControllerRef.value!.style.height = height
-})
-
-function _timeMouseDown() {
-  if (
-    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-  ) {
-    videoRef.value?.pause()
-  }
-}
-
-function _back(time: number) {
-  if (player.value.current - time <= 0) {
-    _doTimechange(0)
-  } else {
-    _doTimechange(player.value.current - time)
-  }
-}
-
-function _go(time: number) {
-  if (player.value.current + time > videoData.value.totalDurationSec) {
-    _doTimechange(0)
-  } else {
-    _doTimechange(player.value.current + time)
-  }
-}
-
-function _ended() {
-  if (
-    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-  ) {
-    let nextIndex = player.value.srcIndex + 1
-    if (
-      nextIndex >= videoData.value.transCodeSrcList.length &&
-      videoData.value.transCodeSrcList.length >=
-        videoData.value.transCodeInfoList.length
-    ) {
-      nextIndex = 0
-    }
-    _doTimechange(
-      videoData.value.transCodeInfoList[nextIndex].rangeTimeSec.start
-    )
-  }
-}
-
-function _timechange() {
-  _doTimechange(player.value.current)
-}
-
-function _doTimechange(newTime: number) {
-  if (
-    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-  ) {
-    player.value.current = newTime
-    let srcIndex = parseInt(String(newTime / videoData.value.transCodeStep))
-    if (srcIndex >= videoData.value.transCodeInfoList.length) {
-      srcIndex = videoData.value.transCodeInfoList.length - 1
-    }
-    if (!videoData.value.transCodeSrcList[srcIndex]) {
-      player.value.videoLoading = true
-      const tranceCodeQueue: number[] = []
-      for (
-        let index = videoData.value.transCodeInfoList.length - 1;
-        index >= srcIndex;
-        index--
-      ) {
-        tranceCodeQueue.push(index)
-      }
-      worker.postMessage({
-        messageType: 'pushQueue',
-        data: { pushQueue: tranceCodeQueue },
-      })
-    }
-    if (srcIndex == player.value.srcIndex) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      videoRef.value!.currentTime =
-        player.value.current - srcIndex * videoData.value.transCodeStep
-      player.value.currentJump = 0
-    } else {
-      player.value.currentJump =
-        player.value.current - srcIndex * videoData.value.transCodeStep
-    }
-    player.value.srcIndex = srcIndex
-  } else {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    videoRef.value!.currentTime = newTime
-    if (player.value.isPlay) {
-      setTimeout(() => {
-        videoRef.value?.play()
-      }, 10)
-    }
-  }
-}
-
-function _timeUpdate() {
-  if (player.value && videoRef.value?.currentTime) {
-    player.value.current =
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      videoRef.value!.currentTime +
-      player.value.srcIndex * videoData.value.transCodeStep
-  }
-}
-
-function _canPlay() {
-  if (
-    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-  ) {
-    if (player.value.currentJump > 0) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      videoRef.value!.currentTime = player.value.currentJump
-      player.value.currentJump = 0
-    }
-
-    if (videoData.value.transCodeSrcList[player.value.srcIndex]) {
-      player.value.videoLoading = false
-    }
-
-    if (player.value.isPlay) {
-      videoRef.value?.play()
-    }
-  } else {
-    videoData.value.totalDurationSec = Number(videoRef.value?.duration)
-    videoData.value.totalDurationString = secToTime(
-      Number(videoRef.value?.duration)
-    )
-    player.value.videoLoading = false
-  }
-}
-
-function _play() {
-  setTimeout(() => {
-    videoRef.value?.play()
-    player.value.isPlay = !player.value.isPlay
-  }, 10)
-}
-
-function _pause() {
-  setTimeout(() => {
-    videoRef.value?.pause()
-    player.value.isPlay = !player.value.isPlay
-  }, 10)
-}
-
-function _volume() {
-  const volume = player.value.volume / 100
-  if (volume <= 0) {
-    player.value.muted = true
-  } else {
-    player.value.muted = false
-  }
-}
-
-function _fullScreen() {
-  if (!player.value.fullScreen) {
-    if (playerBodyRef.value?.requestFullscreen) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      playerBodyRef.value!.style.height = window.screen.height + 'px'
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      playerContentRef.value!.style.height = window.screen.height + 'px'
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      allControllerRef.value!.style.height = window.screen.height + 'px'
-      player.value.fullScreen = !player.value.fullScreen
-      playerBodyRef.value?.requestFullscreen()
-      document.body.style.transform = 'rotate(-90deg) translate(-50%, 50%)'
-    }
-  } else {
-    document.exitFullscreen()
-  }
-}
-
-document.addEventListener('fullscreenchange', (event) => {
-  if (!document.fullscreenElement) {
-    const height = (Number(playerContentRef.value?.clientWidth) * 9) / 16 + 'px'
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    playerBodyRef.value!.style.height = height
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    playerContentRef.value!.style.height = height
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    allControllerRef.value!.style.height = height
-    player.value.fullScreen = !player.value.fullScreen
-    document.body.style.transform = ''
-  }
-})
-
-window.onresize = (a) => {
-  if (!document.fullscreenElement) {
-    const height = (Number(playerContentRef.value?.clientWidth) * 9) / 16 + 'px'
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    playerBodyRef.value!.style.height = height
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    playerContentRef.value!.style.height = height
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    allControllerRef.value!.style.height = height
-  }
-}
+const noTransCodeVideoType = ['video/mp4', 'video/x-matroska']
+const ffmpegWriteFileIndexList: string[] = []
 
 class videoDataClass {
   realUrl = ''
@@ -400,24 +197,6 @@ class videoDataClass {
 
 const videoData = ref(new videoDataClass())
 
-class playerClass {
-  videoLoading = true
-  contentLoading = true
-  srcIndex = 0
-  current = 0
-  currentJump = 0
-  autoplay = false
-  muted = false
-  loop = false
-  volume = 100
-  isPlay = false
-  fullScreen = false
-  ffmpegWriteFileIndexList: number[] = []
-  noTransCodeVideoType: string[] = ['video/mp4', 'video/x-matroska']
-}
-
-const player = ref(new playerClass())
-
 watch(
   () => props.url,
   (newValue) => {
@@ -438,38 +217,62 @@ watch(
   }
 )
 
-function transcodeMarks() {
-  const marks: Record<number, string> = {}
+const tranceCodeQueue = ref<number[]>([])
+
+const ffmpeg = createFFmpeg({
+  log: true,
+  corePath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.js`,
+    import.meta.url
+  ).toString(),
+  // corePath: urlPrefix + '/resource/ffmpeg-core-st.js',
+  workerPath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.worker.js`,
+    import.meta.url
+  ).toString(),
+  // workerPath: urlPrefix + '/resource/ffmpeg-core.worker.js',
+  wasmPath: new URL(
+    `../../util/ffmpeg/common/ffmpeg-core.wasm`,
+    import.meta.url
+  ).toString(),
+  // wasmPath: urlPrefix + '/resource/ffmpeg-core.wasm',
+})
+
+ffmpeg.setProgress((progressParams: { ratio: number }) => {
+  // console.log(progressParams)
+})
+
+ffmpeg.setLogger(async (log: { type: string; message: string }) => {
   if (
-    player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
+    log.type === 'fferr' &&
+    log.message.includes('Duration') &&
+    !videoData.value.totalDurationSec
   ) {
-    videoData.value.transCodeSrcList.filter((el, index) => {
-      if (el) {
-        marks[
-          Number(videoData.value.transCodeInfoList[index].rangeTimeSec.end)
-        ] = ''
+    const m = log.message.split('  Duration: ')[1].split(', ')
+    let dur = m[0]
+    if (dur) {
+      const durArray = dur.split(':')
+      durArray[2] = String(parseInt(durArray[2]))
+      if (parseInt(durArray[2]) < 10) {
+        durArray[2] = '0' + durArray[2]
       }
-    })
+      dur = durArray.join(':')
+      videoData.value.totalDurationString = dur
+      videoData.value.totalDurationSec = parseInt(
+        String(
+          timeToSec(dur) *
+            (videoData.value.rangeStep / videoData.value.totalBytes)
+        )
+      )
+      videoData.value.totalDurationString = secToTime(
+        videoData.value.totalDurationSec
+      )
+
+      calcVideoTransCodeInfo()
+      initTransCodeQueue()
+    }
   }
-  return marks
-}
-
-// const worker = new ffmpegWorker()
-const worker = new Worker(
-  new URL('../../workers/ffmpeg-worker.worker.ts', import.meta.url)
-  // { type: 'module' }
-)
-worker.onmessage = ({ data }) => {
-  //
-}
-
-worker.onerror = (err) => {
-  console.error(err)
-}
-
-worker.onmessageerror = (err) => {
-  console.error(err)
-}
+})
 
 async function loadVideoDataList() {
   const loadVideo = async function (start: number, end: number) {
@@ -498,30 +301,12 @@ async function loadVideoDataList() {
       videoData.value.videoType = 'video/mp4'
     }
     videoData.value.totalBytes = Number(contentRange.split('/')[1])
-    if (
-      player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-    ) {
+    if (noTransCodeVideoType.indexOf(videoData.value.videoType) < 0) {
       if (videoData.value.totalBytes <= videoData.value.rangeStep) {
         videoData.value.rangeStep = videoData.value.totalBytes
       }
     }
-    // eslint-disable-next-line no-constant-condition
-    // for (let start = 0; true; start += videoData.value.rangeStep) {
-    //   let end = start + videoData.value.rangeStep
-    //   if (end >= videoData.value.totalBytes) {
-    //     end = videoData.value.totalBytes
-
-    //     break
-    //   } else {
-    //     videoData.value.rangeLoadInfoList.push({
-    //       start: start,
-    //       end: end,
-    //     })
-    //   }
-    // }
-    if (
-      player.value.noTransCodeVideoType.indexOf(videoData.value.videoType) < 0
-    ) {
+    if (noTransCodeVideoType.indexOf(videoData.value.videoType) < 0) {
       videoData.value.rangeLoadInfoList.push({
         start: 0,
         end: videoData.value.rangeStep,
@@ -531,21 +316,135 @@ async function loadVideoDataList() {
         await loadVideo(rangeInfo.start, rangeInfo.end)
       }
     }
-    console.log(videoData.value.dataList[0])
-    worker.postMessage(
-      JSON.stringify({
-        messageType: 'input',
-        data: {
-          totalBytes: videoData.value.totalBytes,
-          dataList: videoData.value.dataList,
-          rangeLoadInfoList: videoData.value.rangeLoadInfoList,
-        },
-      })
-    )
   })
 }
 
-loadVideoDataList()
+function calcVideoTransCodeInfo() {
+  let startTime = 0
+  for (const index in videoData.value.dataList) {
+    const bytes =
+      videoData.value.rangeLoadInfoList[index].end -
+      videoData.value.rangeLoadInfoList[index].start
+    // const timeSecProportion = bytes / videoData.value.totalBytes
+    const timeSecProportion = bytes / videoData.value.rangeStep
+    const sourceDurationSec =
+      timeSecProportion * videoData.value.totalDurationSec + startTime
+    // eslint-disable-next-line no-constant-condition
+    for (let start = startTime; true; start += videoData.value.transCodeStep) {
+      let end = start + videoData.value.transCodeStep
+      if (end >= sourceDurationSec) {
+        end = sourceDurationSec
+        startTime = sourceDurationSec
+        videoData.value.transCodeInfoList.push({
+          rangeTimeSec: { start: start, end: end },
+          rangeTimeString: { start: secToTime(start), end: secToTime(end) },
+          sourceIndex: Number(index),
+        })
+        break
+      } else {
+        videoData.value.transCodeInfoList.push({
+          rangeTimeSec: { start: start, end: end },
+          rangeTimeString: { start: secToTime(start), end: secToTime(end) },
+          sourceIndex: Number(index),
+        })
+      }
+    }
+  }
+}
+
+function initTransCodeQueue() {
+  for (
+    let index = videoData.value.transCodeInfoList.length - 1;
+    index >= 0;
+    index--
+  ) {
+    tranceCodeQueue.value.push(index)
+  }
+}
+
+async function transcode() {
+  await loadVideoDataList()
+  if (noTransCodeVideoType.indexOf(videoData.value.videoType) < 0) {
+    await ffmpeg.load()
+    await ffmpeg.FS('writeFile', 'origin0', videoData.value.dataList[0])
+    ffmpegWriteFileIndexList.push(0)
+    await ffmpeg.run('-i', 'origin0')
+  } else {
+    videoData.value.transCodeSrcList[player.value.srcIndex] =
+      videoData.value.realUrl
+    nextTick(() => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      videoRef.value?.load()
+    })
+  }
+}
+
+async function doTransCode() {
+  let index
+  while ((index = tranceCodeQueue.value.pop()) != undefined) {
+    if (!videoData.value.transCodeSrcList[index]) {
+      if (
+        ffmpegWriteFileIndexList.indexOf(
+          Number(videoData.value.transCodeInfoList[index].sourceIndex)
+        ) < 0
+      ) {
+        const originData = new Uint8Array(
+          videoData.value.dataList[
+            videoData.value.transCodeInfoList[index].sourceIndex
+          ]
+        )
+        ffmpeg.FS(
+          'writeFile',
+          'origin' + videoData.value.transCodeInfoList[index].sourceIndex,
+          originData
+        )
+        ffmpegWriteFileIndexList.push(
+          Number(videoData.value.transCodeInfoList[index].sourceIndex)
+        )
+      }
+
+      await ffmpeg.run(
+        '-i',
+        'origin' + videoData.value.transCodeInfoList[index].sourceIndex,
+        '-ss',
+        videoData.value.transCodeInfoList[index].rangeTimeString.start,
+        '-to',
+        videoData.value.transCodeInfoList[index].rangeTimeString.end,
+        '-preset',
+        'ultrafast', // ultrafast superfast veryfast faster
+        'result' + index + '.mp4'
+      )
+      videoData.value.transCodeSrcList[index] = URL.createObjectURL(
+        new Blob([ffmpeg.FS('readFile', 'result' + index + '.mp4').buffer], {
+          type: 'video/mp4',
+        })
+      )
+      if (
+        videoData.value.transCodeSrcList[0] &&
+        Number(player.value.srcIndex) === 0
+      ) {
+        player.value.videoLoading = false
+        player.value.contentLoading = false
+        videoRef.value
+        if (videoRef.value) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          videoRef.value!.poster = videoData.value.coverUrl
+        }
+      }
+    }
+  }
+  setTimeout(async () => {
+    await doTransCode()
+  }, 1000)
+}
+
+transcode().catch((e) => {
+  console.error(e)
+})
+
+setTimeout(async () => {
+  await doTransCode()
+}, 1000)
 </script>
 
 <style scoped lang="scss">

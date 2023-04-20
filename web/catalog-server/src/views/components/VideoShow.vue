@@ -453,12 +453,6 @@ function transcodeMarks() {
 
 const tranceCodeQueue = ref<number[]>([])
 
-const urlPrefix =
-  window.location.protocol +
-  '//' +
-  window.location.host +
-  import.meta.env.VITE_APP_BASE_API
-
 const ffmpeg = createFFmpeg({
   log: true,
   corePath: new URL(
