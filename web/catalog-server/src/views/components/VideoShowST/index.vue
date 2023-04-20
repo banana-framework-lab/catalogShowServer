@@ -25,6 +25,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onUnmounted } from 'vue'
 import VideoBody from '@/views/components/VideoShowST/compoents/VideoBody.vue'
+import ffmpegWorkerUrl from '@/views/components/VideoShowST//workers/ffmpeg-worker.worker.js?url'
 export default defineComponent({
   name: 'VideoShowST',
 })
@@ -62,9 +63,7 @@ const wasmPath = new URL(
   import.meta.url
 ).toString()
 
-const worker = new Worker(
-  new URL(`./workers/ffmpeg-worker.worker.js`, import.meta.url).toString()
-)
+const worker = new Worker(ffmpegWorkerUrl, { type: 'classic' })
 worker.onmessage = (event) => {
   const res = JSON.parse(event.data)
   if (res.messageType === 'trans_result') {
