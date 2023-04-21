@@ -53,8 +53,8 @@ func (rt *Route) getRouter(url string) (*param.Router, error) {
 }
 
 func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	//rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	//rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 	if "/" == req.URL.Path || "/index.html" == req.URL.Path {
 		read, err := web.Dist.Open("dist/index.html")
 		if err != nil {

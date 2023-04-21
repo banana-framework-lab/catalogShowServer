@@ -514,7 +514,6 @@ const neighborUrl = ref('')
 const baseUrl =
   window.location.protocol +
   '//' +
-  // '127.0.0.1:8887' +
   window.location.host +
   import.meta.env.VITE_APP_BASE_API +
   ''

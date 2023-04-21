@@ -1,13 +1,15 @@
+const ffmpegUrl =
+  'http://' + self.location.origin.replace('http://', '') + '/ffmpeg.min.js'
+self.importScripts(ffmpegUrl)
 const wf = async () => {
-  const Ffmpeg = await import('@ffmpeg/ffmpeg')
+  const videoDataList = []
   let ffmpeg, corePath, workerPath, wasmPath
-  let videoDataList = []
   let transCodeSrcList
   let transCodeInfoList
   let tranceCodeQueue
 
   function initFFMGEP() {
-    ffmpeg = Ffmpeg.createFFmpeg({
+    ffmpeg = self.FFmpeg.createFFmpeg({
       log: true,
       mainName: 'main',
       corePath,
@@ -17,7 +19,7 @@ const wf = async () => {
   }
 
   async function doTransCode() {
-    let index = tranceCodeQueue.pop()
+    const index = tranceCodeQueue.pop()
     if (index != undefined) {
       if (!transCodeSrcList[index]) {
         await ffmpeg.load()
@@ -44,7 +46,7 @@ const wf = async () => {
           })
         )
         ffmpeg.FS('unlink', 'origin' + transCodeInfoList[index].sourceIndex)
-        ffmpeg.FS('unlink', 'result' + index + '.mp4')
+        // ffmpeg.FS('unlink', 'result' + index + '.mp4')
         ffmpeg.exit()
         self.postMessage(
           JSON.stringify({

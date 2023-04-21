@@ -97,6 +97,7 @@ func (f *File) Init() {
 	http.Handle("/static/", f)
 	http.Handle("/resource/", f)
 	http.Handle("/favicon.ico", f)
+	http.Handle("/ffmpeg.min.js", f)
 
 }
 
@@ -199,7 +200,10 @@ func (f *File) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (f *File) onRequest(rw http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.URL.Path, "/static/") || strings.HasPrefix(req.URL.Path, "/resource/") || strings.HasPrefix(req.URL.Path, "/favicon.ico") {
+	if strings.HasPrefix(req.URL.Path, "/static/") ||
+		strings.HasPrefix(req.URL.Path, "/resource/") ||
+		strings.HasPrefix(req.URL.Path, "/favicon.ico") ||
+		strings.HasPrefix(req.URL.Path, "/ffmpeg.min.js") {
 		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
 			log.Fatal(err)

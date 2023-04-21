@@ -25,7 +25,6 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onUnmounted } from 'vue'
 import VideoBody from '@/views/components/VideoShowST/compoents/VideoBody.vue'
-import ffmpegWorkerUrl from '@/views/components/VideoShowST//workers/ffmpeg-worker.worker.js?url'
 export default defineComponent({
   name: 'VideoShowST',
 })
@@ -63,16 +62,14 @@ const wasmPath = new URL(
   import.meta.url
 ).toString()
 
-const worker = new Worker(ffmpegWorkerUrl, { type: 'classic' })
-worker.onmessage = (event) => {
-  const res = JSON.parse(event.data)
-  if (res.messageType === 'trans_result') {
-    videoData.value.transCodeSrcList[res.data.index] = res.data.resultUrl
-  }
-}
+let worker: Worker
+let workerUrl: string
 
 onUnmounted(() => {
-  worker.terminate()
+  if (worker) {
+    worker.terminate()
+    URL.revokeObjectURL(workerUrl)
+  }
 })
 
 class videoDataClass {
@@ -128,6 +125,7 @@ function pushTransCodeQueue(index: number) {
 }
 
 async function init() {
+  await initWorker()
   await initVideo()
   if (noTransCodeVideoType.indexOf(videoData.value.videoType) < 0) {
     initFFMGEP()
@@ -140,6 +138,11 @@ async function init() {
       JSON.stringify({
         messageType: 'init',
         data: {
+          env: process.env.NODE_ENV,
+          ffmpegUrl: new URL(
+            `../../../util/ffmpeg/ffmpeg.min.js`,
+            import.meta.url
+          ).toString(),
           corePath: corePath,
           workerPath: workerPath,
           wasmPath: wasmPath,
@@ -160,6 +163,25 @@ async function init() {
     )
   } else {
     videoData.value.transCodeSrcList[0] = videoData.value.realUrl
+  }
+}
+
+async function initWorker() {
+  const res = await fetch(
+    new URL(`./workers/ffmpeg-worker.worker.js`, import.meta.url).toString()
+  )
+  workerUrl = URL.createObjectURL(
+    new Blob([new Uint8Array(await res.arrayBuffer())])
+  )
+  worker = new Worker(workerUrl, {
+    type: 'classic',
+  })
+
+  worker.onmessage = (event) => {
+    const res = JSON.parse(event.data)
+    if (res.messageType === 'trans_result') {
+      videoData.value.transCodeSrcList[res.data.index] = res.data.resultUrl
+    }
   }
 }
 
