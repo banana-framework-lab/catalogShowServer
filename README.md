@@ -31,7 +31,7 @@ CatalogShowServer can run in the following browsers
 
 ## 🧩 AbleFileType
 -  .gif .jpg .jpeg .png .bmp .psd .mp4 .rmvb .avi .mpeg .mpg .m4v .mkv .mov .wmv .asx .mp3 .wav .ogg
-
+-  Because H5 cannot play AVI and other file formats, ffmpeg is used here to play while rotating
 ## 🖥️ Usage
 
 + Windows
