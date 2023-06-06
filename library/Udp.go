@@ -111,6 +111,11 @@ func (u *Udp) Init() {
 				})
 				u.IpList = append(u.IpList, ipNet.IP.String())
 				u.NeighborList[ipNet.IP.String()] = []Neighbor{}
+				u.NeighborList[ipNet.IP.String()] = append(u.NeighborList[ipNet.IP.String()], Neighbor{
+					Ip:   "172.19.240.1",
+					Port: "8887",
+					Url:  "http://172.19.240.1:8887/",
+				})
 			}
 		}
 	}
@@ -157,7 +162,7 @@ func (u *Udp) Init() {
 	}
 
 	go u.receive()
-	//go u.loopBroadcast()
+	go u.loopBroadcast()
 }
 
 func (u *Udp) BroadcastStatus() {
@@ -190,7 +195,7 @@ func (u *Udp) loopBroadcast() {
 			fmt.Println(err)
 		}
 
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 5)
 	}
 }
 
@@ -245,19 +250,21 @@ func (u *Udp) receive() {
 					Port: sendPort,
 					Url:  "http://" + address + ":" + message.WebPort,
 				}
+
 				if !common.InSlice(newNeighbor, u.NeighborList[NeighborKey], func(needle Neighbor, e Neighbor) bool {
 					if e.Url == needle.Url && e.Port == needle.Port {
 						return true
 					}
 					return false
-				}) && (!common.InSlice(newNeighbor.Ip, u.IpList, func(needle string, e string) bool {
+				}) && !common.InSlice(newNeighbor.Ip, u.IpList, func(needle string, e string) bool {
 					if needle == e {
 						return true
 					}
 					return false
-				})) {
+				}) {
 					u.NeighborList[NeighborKey] = append(u.NeighborList[NeighborKey], newNeighbor)
 				}
+
 			} else {
 				deleteIndex := -1
 				for index, item := range u.NeighborList[NeighborKey] {

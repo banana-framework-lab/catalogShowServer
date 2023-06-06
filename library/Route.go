@@ -10,7 +10,9 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Route struct {
@@ -53,8 +55,7 @@ func (rt *Route) getRouter(url string) (*param.Router, error) {
 }
 
 func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	//rw.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	//rw.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	fmt.Printf("%+v \n", strconv.FormatInt(time.Now().Unix(), 10))
 	if "/" == req.URL.Path || "/index.html" == req.URL.Path {
 		read, err := web.Dist.Open("dist/index.html")
 		if err != nil {
@@ -72,6 +73,7 @@ func (rt *Route) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	} else {
 		if len(req.Header["Origin"]) > 0 {
+			fmt.Printf("%+v", req.Header["Origin"][0])
 			rw.Header().Set("Access-Control-Allow-Origin", req.Header["Origin"][0])
 		}
 		rw.Header().Add("Access-Control-Allow-Credentials", "true")

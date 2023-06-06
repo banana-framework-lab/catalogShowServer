@@ -234,7 +234,7 @@
                   :x-gap="15"
                   :y-gap="12"
                 >
-                  <n-grid-item
+                  <!-- <n-grid-item
                     v-for="(item, index) in search.list"
                     :key="index"
                   >
@@ -311,7 +311,7 @@
                         </n-ellipsis>
                       </div>
                     </n-card>
-                  </n-grid-item>
+                  </n-grid-item> -->
                 </n-grid>
               </n-scrollbar>
               <div v-if="search.mode === 'table'">

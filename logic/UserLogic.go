@@ -13,7 +13,7 @@ import (
 
 type UserLogic struct{}
 
-func (UserLogic) Login(user string, password string) (bool, string) {
+func (UserLogic) Login(password string) (bool, string) {
 	loginConfig, err := os.ReadFile(filepath.Join(library.GetRootSrc(), "/build/login.json"))
 	if err != nil {
 		panic("配置文件读取错误" + err.Error())
@@ -21,7 +21,6 @@ func (UserLogic) Login(user string, password string) (bool, string) {
 	}
 
 	var userData struct {
-		User     string `json:"user"`
 		Password string `json:"password"`
 	}
 	dataErr := common.DecodeJson(loginConfig, &userData)
@@ -30,8 +29,8 @@ func (UserLogic) Login(user string, password string) (bool, string) {
 		return false, ""
 	}
 
-	if user == userData.User && password == userData.Password {
-		token := md5.Sum([]byte(userData.User + "&" + userData.Password + "&" + strconv.FormatInt(time.Now().Unix(), 10)))
+	if password == userData.Password {
+		token := md5.Sum([]byte(userData.Password + "&" + strconv.FormatInt(time.Now().Unix(), 10)))
 		tokenX := fmt.Sprintf("%x", token)
 		library.GetContainer().GetUser().SetToken(tokenX)
 		return true, tokenX

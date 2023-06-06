@@ -4,7 +4,6 @@ export class Login extends Request {
   public url = '/user/login'
   readonly method = 'POST'
   public declare requestParam: {
-    user: string
     password: string
   }
   public declare responseParam: {

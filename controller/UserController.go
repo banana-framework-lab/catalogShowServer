@@ -15,17 +15,15 @@ func (u UserController) RouterList() []*param.Router {
 
 func (UserController) login(req param.Request) param.Response {
 	var data = struct {
-		User     string `json:"user"`
 		Password string `json:"password"`
 	}{
-		User:     "",
 		Password: "",
 	}
 	err := req.POST(&data)
 
 	if err == nil {
 		var l = logic.UserLogic{}
-		var result, md5 = l.Login(data.User, data.Password)
+		var result, md5 = l.Login(data.Password)
 		if result {
 			return param.Response{
 				Code:    param.RequestSuccess,

@@ -27,19 +27,6 @@
               </n-gradient-text>
             </div>
             <n-form ref="formRef" :model="form" :rules="rules">
-              <n-form-item-row path="user" label="用户名">
-                <n-input
-                  v-model:value="form.user"
-                  round
-                  clearable
-                  placeholder="请输入用户名"
-                  @keydown.enter.prevent
-                >
-                  <template #prefix>
-                    <n-icon :component="UserAstronaut" />
-                  </template>
-                </n-input>
-              </n-form-item-row>
               <n-form-item-row path="password" label="密码">
                 <n-input
                   v-model:value="form.password"
@@ -77,7 +64,6 @@ export default { name: 'Show' }
 </script>
 <script setup lang="ts">
 import { GlassesOutline, Glasses } from '@vicons/ionicons5'
-import { UserAstronaut } from '@vicons/fa'
 import { Keyboard12324Filled } from '@vicons/fluent'
 import { ref, computed, watch } from 'vue'
 import { Login } from '@/api/login'
@@ -85,24 +71,11 @@ import { setToken, isLogin } from '@/util/token'
 import { NForm, FormRules, FormItemRule } from 'naive-ui'
 import router from '@/router'
 
-const form = ref<{ user: string; password: string }>({
-  user: '',
+const form = ref<{ password: string }>({
   password: '',
 })
 const formRef = ref<InstanceType<typeof NForm>>()
 const rules: FormRules = {
-  user: [
-    {
-      required: true,
-      validator(rule: FormItemRule, value: string) {
-        if (!value) {
-          return new Error('请输入用户名')
-        }
-        return true
-      },
-      trigger: ['input', 'blur'],
-    },
-  ],
   password: [
     {
       required: true,
@@ -137,7 +110,6 @@ function login(e: MouseEvent) {
     if (!errors) {
       new Login()
         .setParam({
-          user: form.value.user,
           password: form.value.password,
         })
         .request()
