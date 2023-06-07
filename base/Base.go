@@ -17,6 +17,7 @@ func initController() {
 		controller.ListController{},
 		controller.SystemController{},
 		controller.UserController{},
+		controller.NeighborController{},
 	)
 }
 

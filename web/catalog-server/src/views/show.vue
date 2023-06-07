@@ -56,7 +56,7 @@
                 trigger="click"
                 :render-label="renderNeighborOptionsIcon"
                 scrollable
-                :on-update:value="changeNeighor"
+                :on-update:value="changeNeighbor"
               >
                 <n-button quaternary circle type="primary">
                   <template #icon>
@@ -234,7 +234,7 @@
                   :x-gap="15"
                   :y-gap="12"
                 >
-                  <!-- <n-grid-item
+                  <n-grid-item
                     v-for="(item, index) in search.list"
                     :key="index"
                   >
@@ -311,7 +311,7 @@
                         </n-ellipsis>
                       </div>
                     </n-card>
-                  </n-grid-item> -->
+                  </n-grid-item>
                 </n-grid>
               </n-scrollbar>
               <div v-if="search.mode === 'table'">
@@ -449,6 +449,32 @@
         </div>
       </n-scrollbar>
     </n-modal>
+    <!-- 邻居密码 -->
+    <n-modal
+      v-model:show="neighborPasswordModel"
+      preset="dialog"
+      title="请输入邻居密码"
+      positive-text="确认"
+      negative-text="不知道密码"
+      @positive-click="doCheckPassword"
+      @negative-click="
+        () => {
+          neighborUrl = ''
+          neighborPasswordModel = false
+        }
+      "
+    >
+      <n-input
+        v-model:value="neighborPassword"
+        show-password-on="click"
+        clearable
+        round
+        type="password"
+        placeholder="请输入密码"
+        @keydown.enter.prevent
+      >
+      </n-input>
+    </n-modal>
   </div>
 </template>
 
@@ -467,10 +493,16 @@ import {
   setPage,
   setFileCatalog,
 } from '@/util/system'
-import { Eye, PlayCircle } from '@vicons/fa'
+import { Eye } from '@vicons/fa'
 import { Network4, UpdateNow } from '@vicons/carbon'
 import { UserCircle } from '@vicons/tabler'
 import { GetListByCondition, FileInfo } from '@/api/list'
+import {
+  checkPassword,
+  GetNeighborFiletypeOption,
+  GetNeighborCatalogOption,
+  GetNeighborListByCondition,
+} from '@/api/neighbor'
 import { ReloadFile, GetNeighborList, EditShowStatus } from '@/api/system'
 import {
   GetFiletypeOption,
@@ -496,6 +528,9 @@ import AudioShowVime from '@/views/components/AudioShowVime.vue'
 import { onBeforeRouteLeave, RouteLocationNormalized } from 'vue-router'
 
 const neighborStatus = ref<boolean>(false)
+const neighborPasswordModel = ref<boolean>(false)
+const neighborPassword = ref<string>('')
+
 const message = useMessage()
 function editBroadcastStatus() {
   new EditShowStatus()
@@ -670,57 +705,122 @@ function deleteHistory() {
 const fileTypeOption = ref<FileTypeOption[]>([])
 
 function getFiletypeOption() {
-  new GetFiletypeOption().request().then((res) => {
-    fileTypeOption.value = res.data.options
-  })
+  if (neighborUrl.value) {
+    new GetNeighborFiletypeOption()
+      .setParam({
+        ip: neighborUrl.value.split(':')[0],
+        port: neighborUrl.value.split(':')[1],
+        password: neighborPassword.value,
+      })
+      .request()
+      .then((res) => {
+        fileTypeOption.value = res.data.options
+      })
+  } else {
+    new GetFiletypeOption().request().then((res) => {
+      fileTypeOption.value = res.data.options
+    })
+  }
 }
 getFiletypeOption()
 
 const catalogOption = ref<CatalogOption[]>([])
 
 function getCatalogOption() {
-  new GetCatalogOption().request().then((res) => {
-    catalogOption.value = res.data.options
-  })
+  if (neighborUrl.value) {
+    new GetNeighborCatalogOption()
+      .setParam({
+        ip: neighborUrl.value.split(':')[0],
+        port: neighborUrl.value.split(':')[1],
+        password: neighborPassword.value,
+      })
+      .request()
+      .then((res) => {
+        catalogOption.value = res.data.options
+      })
+  } else {
+    new GetCatalogOption().request().then((res) => {
+      catalogOption.value = res.data.options
+    })
+  }
 }
 getCatalogOption()
 
 function getListByCondition(page = 1) {
   search.loading = true
   search.condition.page = page
-  new GetListByCondition()
-    .setProtocolDomain(neighborUrl.value)
-    .setParam({
-      name: search.condition.name,
-      file_type: search.condition.fileType
-        ? String(search.condition.fileType)
-        : undefined,
-      catalog: search.condition.catalog
-        ? String(search.condition.catalog)
-        : undefined,
-      page: search.condition.page,
-      rows: search.condition.rows,
-    })
-    .request()
-    .then((res) => {
-      listShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
-      tableShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
-      search.reloadList = false
-      nextTick(() => {
-        search.list = res.data.list
-        search.total = res.data.total
-        search.loading = false
-        search.reloadList = true
+
+  if (neighborUrl.value) {
+    GetNeighborListByCondition
+    new GetNeighborListByCondition()
+      .setParam({
+        ip: neighborUrl.value.split(':')[0],
+        port: neighborUrl.value.split(':')[1],
+        password: neighborPassword.value,
+        name: search.condition.name,
+        file_type: search.condition.fileType
+          ? String(search.condition.fileType)
+          : undefined,
+        catalog: search.condition.catalog
+          ? String(search.condition.catalog)
+          : undefined,
+        page: search.condition.page,
+        rows: search.condition.rows,
       })
-    })
-    .catch((err: AxiosError) => {
-      if (Number(err.response?.status) == 404) {
-        search.list = []
-        search.total = 0
-        search.condition.page = 1
-      }
-      search.loading = false
-    })
+      .request()
+      .then((res) => {
+        listShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+        tableShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+        search.reloadList = false
+        nextTick(() => {
+          search.list = res.data.list
+          search.total = res.data.total
+          search.loading = false
+          search.reloadList = true
+        })
+      })
+      .catch((err: AxiosError) => {
+        if (Number(err.response?.status) == 404) {
+          search.list = []
+          search.total = 0
+          search.condition.page = 1
+        }
+        search.loading = false
+      })
+  } else {
+    new GetListByCondition()
+      .setParam({
+        name: search.condition.name,
+        file_type: search.condition.fileType
+          ? String(search.condition.fileType)
+          : undefined,
+        catalog: search.condition.catalog
+          ? String(search.condition.catalog)
+          : undefined,
+        page: search.condition.page,
+        rows: search.condition.rows,
+      })
+      .request()
+      .then((res) => {
+        listShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+        tableShowRef.value?.$el.scrollIntoView({ behavior: 'instant' })
+        search.reloadList = false
+        nextTick(() => {
+          search.list = res.data.list
+          search.total = res.data.total
+          search.loading = false
+          search.reloadList = true
+        })
+      })
+      .catch((err: AxiosError) => {
+        if (Number(err.response?.status) == 404) {
+          search.list = []
+          search.total = 0
+          search.condition.page = 1
+        }
+        search.loading = false
+      })
+  }
 }
 
 function seeOther() {
@@ -752,7 +852,7 @@ function getNeighborList() {
     .then((res) => {
       neighborOptions.value = res.data.list.map((item) => {
         return {
-          value: item.url,
+          value: `${item.ip}:${item.port}`,
           label: item.ip,
         }
       })
@@ -780,8 +880,35 @@ onBeforeRouteLeave(
   }
 )
 
-function changeNeighor(a: string) {
+function changeNeighbor(a: string) {
   neighborUrl.value = a
+  neighborPasswordModel.value = true
+}
+
+function doCheckPassword() {
+  if (!neighborPassword.value) {
+    neighborUrl.value = ''
+    return
+  }
+  new checkPassword()
+    .setParam({
+      ip: neighborUrl.value.split(':')[0],
+      port: neighborUrl.value.split(':')[1],
+      password: neighborPassword.value,
+    })
+    .request()
+    .then(() => {
+      loadNeighbor()
+    })
+    .catch(() => {
+      neighborUrl.value = ''
+      neighborPassword.value = ''
+    })
+}
+
+function loadNeighbor() {
+  getFiletypeOption()
+  getCatalogOption()
   getListByCondition(1)
 }
 

@@ -9,19 +9,19 @@ import (
 
 type ListController struct{}
 
-func (f ListController) RouterList() []*param.Router {
+func (l ListController) RouterList() []*param.Router {
 	return append([]*param.Router{
-		param.NewRouter("/list/getListByCondition", f.getListByCondition),
-		param.NewRouter("/list/getFiletypeOption", f.getFiletypeOption),
-		param.NewRouter("/list/getCatalogOption", f.getCatalogOption),
-	}, f.visitRouterList()...)
+		param.NewRouter("/list/getListByCondition", l.getListByCondition),
+		param.NewRouter("/list/getFiletypeOption", l.getFiletypeOption),
+		param.NewRouter("/list/getCatalogOption", l.getCatalogOption),
+	}, l.visitRouterList()...)
 }
 
-func (f ListController) visitRouterList() []*param.Router {
+func (l ListController) visitRouterList() []*param.Router {
 	list := []*param.Router{
-		param.NewRouter("/visit/list/getListByCondition", f.getListByCondition),
-		param.NewRouter("/visit/list/getFiletypeOption", f.getFiletypeOption),
-		param.NewRouter("/visit/list/getCatalogOption", f.getCatalogOption),
+		param.NewRouter("/visit/list/getListByCondition", l.getListByCondition),
+		param.NewRouter("/visit/list/getFiletypeOption", l.getFiletypeOption),
+		param.NewRouter("/visit/list/getCatalogOption", l.getCatalogOption),
 	}
 	for _, router := range list {
 		router.SetCommonMiddlewareStatus(param.MiddlewareTypeBefore, false).SetBeforeMiddleware(middleware.VisitMiddleware{}.CheckShowStatus)

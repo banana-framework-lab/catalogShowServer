@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/logic"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 )
@@ -10,16 +11,19 @@ type UserController struct{}
 func (u UserController) RouterList() []*param.Router {
 	return []*param.Router{
 		param.NewRouter("/user/login", u.login).SetCommonMiddlewareStatus(param.MiddlewareTypeBefore, false),
+		param.NewRouter("/visit/user/checkPassword", u.login).SetCommonMiddlewareStatus(param.MiddlewareTypeBefore, false),
 	}
 }
 
 func (UserController) login(req param.Request) param.Response {
 	var data = struct {
-		Password string `json:"password"`
+		Password string
 	}{
 		Password: "",
 	}
-	err := req.POST(&data)
+	err := req.DATA(&data)
+
+	fmt.Printf("%+v", data)
 
 	if err == nil {
 		var l = logic.UserLogic{}
@@ -27,7 +31,7 @@ func (UserController) login(req param.Request) param.Response {
 		if result {
 			return param.Response{
 				Code:    param.RequestSuccess,
-				Message: "登陆成功",
+				Message: "成功",
 				Data: struct {
 					Token string `json:"token"`
 				}{Token: md5},
@@ -35,14 +39,14 @@ func (UserController) login(req param.Request) param.Response {
 		} else {
 			return param.Response{
 				Code:    param.RequestFail,
-				Message: "登陆失败：账号密码错误",
+				Message: "失败：账号密码(" + data.Password + ")错误",
 				Data:    struct{}{},
 			}
 		}
 	} else {
 		return param.Response{
 			Code:    param.RequestFail,
-			Message: "登陆失败" + err.Error(),
+			Message: "失败" + err.Error(),
 			Data:    struct{}{},
 		}
 	}

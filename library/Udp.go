@@ -111,11 +111,6 @@ func (u *Udp) Init() {
 				})
 				u.IpList = append(u.IpList, ipNet.IP.String())
 				u.NeighborList[ipNet.IP.String()] = []Neighbor{}
-				u.NeighborList[ipNet.IP.String()] = append(u.NeighborList[ipNet.IP.String()], Neighbor{
-					Ip:   "172.19.240.1",
-					Port: "8887",
-					Url:  "http://172.19.240.1:8887/",
-				})
 			}
 		}
 	}
