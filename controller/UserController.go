@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/banana-framework-lab/catalogShowServer/logic"
 	"github.com/banana-framework-lab/catalogShowServer/param"
 )
@@ -15,7 +14,7 @@ func (u UserController) RouterList() []*param.Router {
 	}
 }
 
-func (UserController) login(req param.Request) param.Response {
+func (UserController) checkPassword(req param.Request) param.Response {
 	var data = struct {
 		Password string
 	}{
@@ -23,7 +22,38 @@ func (UserController) login(req param.Request) param.Response {
 	}
 	err := req.DATA(&data)
 
-	fmt.Printf("%+v", data)
+	if err == nil {
+		var l = logic.UserLogic{}
+		var result = l.CheckPassword(data.Password)
+		if result {
+			return param.Response{
+				Code:    param.RequestSuccess,
+				Message: "成功",
+				Data:    struct{}{},
+			}
+		} else {
+			return param.Response{
+				Code:    param.RequestFail,
+				Message: "失败：密码(" + data.Password + ")错误",
+				Data:    struct{}{},
+			}
+		}
+	} else {
+		return param.Response{
+			Code:    param.RequestFail,
+			Message: "失败" + err.Error(),
+			Data:    struct{}{},
+		}
+	}
+}
+
+func (UserController) login(req param.Request) param.Response {
+	var data = struct {
+		Password string
+	}{
+		Password: "",
+	}
+	err := req.DATA(&data)
 
 	if err == nil {
 		var l = logic.UserLogic{}
@@ -39,7 +69,7 @@ func (UserController) login(req param.Request) param.Response {
 		} else {
 			return param.Response{
 				Code:    param.RequestFail,
-				Message: "失败：账号密码(" + data.Password + ")错误",
+				Message: "失败：密码(" + data.Password + ")错误",
 				Data:    struct{}{},
 			}
 		}
